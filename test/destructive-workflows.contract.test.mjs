@@ -99,7 +99,7 @@ test('bulk secret migration writes only selected keys to vcopy-test targets', as
       '--apply',
       '--yes',
     ], { VERCEL_TOKEN: 'test-token' });
-    assert.equal(refused.code, 1);
+    assert.equal(refused.code, 3);
     assert.match(refused.stderr, /only vcopy-test-/);
   } finally {
     await api.close();
@@ -145,7 +145,7 @@ test('domain move refuses real projects and moves only vcopy-test domains', asyn
       '--apply',
       '--yes',
     ], { VERCEL_TOKEN: 'test-token' });
-    assert.equal(refused.code, 1);
+    assert.equal(refused.code, 3);
     assert.match(refused.stderr, /only vcopy-test-/);
   } finally {
     await api.close();
@@ -215,7 +215,7 @@ test('deployment protection sync excludes bypass secrets and requires test-proje
       '--apply',
       '--yes',
     ], { VERCEL_TOKEN: 'test-token' });
-    assert.equal(refused.code, 1);
+    assert.equal(refused.code, 3);
     assert.match(refused.stderr, /only vcopy-test-/);
   } finally {
     await api.close();
@@ -254,6 +254,24 @@ test('cron and rewrite sync mutates only test fixture config files', async () =>
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test('unsafe destructive writes exit 3', async () => {
+  const result = await runCli([
+    'domain-move',
+    '--from',
+    'brand-a-web',
+    '--to',
+    'vcopy-test-target',
+    '--domain',
+    'vcopy-test.example.com',
+    '--test-project-only',
+    '--apply',
+    '--yes',
+  ], { VERCEL_TOKEN: 'test-token' });
+
+  assert.equal(result.code, 3);
+  assert.match(result.stderr, /vcopy-test-/);
 });
 
 async function readFixture(file) {

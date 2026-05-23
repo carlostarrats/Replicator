@@ -2,6 +2,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { EXIT_CODES } from './cli/exit-codes.mjs';
 import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
 import { runCiCheck } from './commands/ci.mjs';
@@ -70,7 +71,7 @@ async function main(argv) {
       ? `${JSON.stringify(readiness, null, 2)}\n`
       : renderReadiness(readiness);
     await writeCommandOutput(output, options);
-    return options.failOnBlocked && readiness.blocked.length > 0 ? 2 : 0;
+    return options.failOnBlocked && readiness.blocked.length > 0 ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
   }
 
   if (command === 'diff') {
@@ -79,7 +80,7 @@ async function main(argv) {
       ? `${JSON.stringify(diff, null, 2)}\n`
       : renderDiff(diff);
     await writeCommandOutput(output, options);
-    return options.failOnDrift && hasDrift(diff) ? 2 : 0;
+    return options.failOnDrift && hasDrift(diff) ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
   }
 
   if (command === 'ci') {
@@ -134,7 +135,7 @@ async function main(argv) {
   if (command === 'overview') {
     const result = await createOverview(options);
     await writeCommandOutput(result.output, options);
-    return options.failOnDrift && result.hasDrift ? 2 : 0;
+    return options.failOnDrift && result.hasDrift ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
   }
 
   if (command === 'refactor-env') {
@@ -681,5 +682,5 @@ main(process.argv.slice(2)).then((exitCode) => {
   process.exitCode = exitCode;
 }).catch((error) => {
   process.stderr.write(`${error.message}\n`);
-  process.exitCode = error.exitCode || 1;
+  process.exitCode = error.exitCode || EXIT_CODES.error;
 });

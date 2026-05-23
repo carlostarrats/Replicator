@@ -1,11 +1,13 @@
+import { UnsafeWriteError } from '../cli/exit-codes.mjs';
+
 export function assertTestProjectWrite(options, projectNames) {
   if (!options.apply || !options.yes || !options.testProjectOnly) {
-    throw new Error('Refusing write without --test-project-only --apply --yes.');
+    throw new UnsafeWriteError('Refusing write without --test-project-only --apply --yes.');
   }
 
   for (const projectName of projectNames.filter(Boolean)) {
     if (!projectName.startsWith('vcopy-test-')) {
-      throw new Error(`Destructive writes allow only vcopy-test- project names. Refusing ${projectName}.`);
+      throw new UnsafeWriteError(`Destructive writes allow only vcopy-test- project names. Refusing ${projectName}.`);
     }
   }
 }

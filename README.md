@@ -245,3 +245,11 @@ node src/cli.mjs projects --team-id team_xxxxx
 ```bash
 npm test
 ```
+
+## Exit Codes
+
+- `0`: success
+- `1`: usage or runtime error
+- `2`: readiness blocker or drift detected
+- `3`: unsafe destructive write refused
+- `4`: local policy check failed
