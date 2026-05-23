@@ -1,7 +1,8 @@
 {
   "name": "vercel-config-manager",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "vcopy": "./src/cli.mjs"

@@ -5,7 +5,7 @@ Date: 2026-05-23
 Scope reviewed:
 
 - CLI command registration, permission categories, and local-only command list.
-- Fake API and fixture test coverage.
+- Local API simulator and fixture test coverage.
 - Destructive command guards and error guidance.
 - JSON report schema markers and local viewer routing.
 - Documentation gates for install, release, security, and real-project policy.
@@ -18,11 +18,11 @@ Findings:
 
 Follow-up hardening areas:
 
-- Dogfood workflow: add a single scripted local flow that chains report generation, policy checks, snapshots, CI, templates, handoff package, and viewer generation through the fake API.
+- Dogfood workflow: add a single scripted local flow that chains report generation, policy checks, snapshots, CI, templates, handoff package, and viewer generation through the local API simulator.
 - User walkthrough: add a start-here guide that shows the safe local path from install to handoff package.
 - Policy rules: expand local policy checks beyond env key presence to cover domains, framework/root directory, env targets, and forbidden project settings.
 - Schema validation: validate `.vcopyrc.json`, policy files, and template files before using them so malformed inputs produce clear errors.
 
 Review result:
 
-- Proceed with the four follow-up implementation steps above using only local files and fake API servers.
+- Proceed with the four follow-up implementation steps above using only local files and local API simulators.

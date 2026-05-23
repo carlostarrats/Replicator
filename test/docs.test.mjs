@@ -52,7 +52,24 @@ test('start here guide walks through the safe local workflow', async () => {
 
   assert.match(docs, /Start Here/);
   assert.match(docs, /npm run dogfood/);
-  assert.match(docs, /fake Vercel API/i);
+  assert.match(docs, /local Vercel API simulator/i);
   assert.match(docs, /vcopy-test-/);
   assert.match(docs, /handoff/);
+});
+
+test('readme is public-ready and avoids test-harness wording', async () => {
+  const docs = await readFile('README.md', 'utf8');
+
+  assert.match(docs, /## Overview/);
+  assert.match(docs, /## What it does/);
+  assert.match(docs, /## Safety model/);
+  assert.match(docs, /## License/);
+  assert.doesNotMatch(docs, /\bfake\b/i);
+});
+
+test('repository has an open source license', async () => {
+  const license = await readFile('LICENSE', 'utf8');
+
+  assert.match(license, /MIT License/);
+  assert.match(license, /Carlos Tarrats/);
 });

@@ -8,6 +8,8 @@ test('package exposes vcopy bin and version', async () => {
 
   assert.equal(pkg.bin.vcopy, './src/cli.mjs');
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(pkg.private, false);
+  assert.equal(pkg.license, 'MIT');
 });
 
 test('cli prints package version', async () => {

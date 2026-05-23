@@ -24,7 +24,7 @@ Vercel Config Manager is designed to avoid owning secrets.
 
 ## Duplicate Behavior
 
-`duplicate --apply --yes` creates a new project and copies safe build settings. It does not create fake secret values. Instead, it prints the `vercel env add` commands needed for manual entry.
+`duplicate --apply --yes` creates a new project and copies safe build settings. It does not invent or write placeholder secret values. Instead, it prints the `vercel env add` commands needed for manual entry.
 
 Domains, integration credentials, and destructive changes are skipped by default and listed for manual review.
 

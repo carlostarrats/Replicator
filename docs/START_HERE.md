@@ -15,7 +15,7 @@ node src/cli.mjs --version
 npm run dogfood -- --out-dir ./.vcopy/dogfood
 ```
 
-The dogfood workflow starts a fake Vercel API on localhost and writes local artifacts only. It does not call real Vercel projects, domains, or credentials.
+The dogfood workflow starts a local Vercel API simulator on localhost and writes local artifacts only. It does not call real Vercel projects, domains, or credentials.
 
 Generated artifacts:
 
@@ -36,7 +36,7 @@ Load `analysis.json` into the viewer to inspect the report. The viewer is local-
 
 ## 4. Run focused commands
 
-After the dogfood workflow, try individual commands against the fake API tests or local files:
+After the dogfood workflow, try individual commands against the generated local files:
 
 ```bash
 node src/cli.mjs policy-check --report ./.vcopy/dogfood/analysis.json --policy ./.vcopy/dogfood/policy.json

@@ -84,7 +84,7 @@ Example:
 node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --test-project-only --apply --yes
 ```
 
-Writes: fake API or test-scoped Vercel domain changes only.
+Writes: test-scoped Vercel domain changes only.
 
 ## vcopy duplicate
 
