@@ -74,6 +74,12 @@ Export env names without values:
 node src/cli.mjs env-template brand-a-web --out ./.env.example
 ```
 
+Export a reusable project config template:
+
+```bash
+node src/cli.mjs template brand-a-web --out ./brand-a-template.json
+```
+
 Push a selected local env value:
 
 ```bash

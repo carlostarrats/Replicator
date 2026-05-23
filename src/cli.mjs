@@ -14,6 +14,7 @@ import { listVercelProjects } from './commands/projects.mjs';
 import { refactorEnv } from './commands/refactor-env.mjs';
 import { createMigrationReport } from './commands/report.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
+import { createProjectTemplate } from './commands/template.mjs';
 import { verifyProject } from './commands/verify.mjs';
 import { createOverview } from './commands/overview.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
@@ -28,7 +29,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview'].includes(command)) {
+  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template'].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -109,6 +110,12 @@ async function main(argv) {
 
   if (command === 'env-template') {
     const output = await createEnvTemplate(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'template') {
+    const output = await createProjectTemplate(options);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -365,7 +372,7 @@ async function parseArgs(command, args) {
     throw new CliError('Unsupported format. Use markdown or json.', 1);
   }
 
-  if ((command === 'check' || command === 'env-template' || command === 'env-push' || command === 'env-rm') && !options.project) {
+  if ((command === 'check' || command === 'env-template' || command === 'env-push' || command === 'env-rm' || command === 'template') && !options.project) {
     throw new CliError(`Usage: vcopy ${command} <project>`, 1);
   }
 
@@ -511,6 +518,7 @@ Usage:
   vcopy env-rm <project>
   vcopy report --from <source-project> --to <target-project>
   vcopy overview
+  vcopy template <project>
 
 Options:
   --api-base <url>   Override the Vercel API base URL.

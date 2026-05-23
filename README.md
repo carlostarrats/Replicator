@@ -20,6 +20,7 @@ vcopy env-push <project>
 vcopy env-rm <project>
 vcopy report --from <source-project> --to <target-project>
 vcopy overview
+vcopy template <project>
 ```
 
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
@@ -146,6 +147,12 @@ Export an env template without secret values:
 
 ```bash
 node src/cli.mjs env-template brand-a-web --out ./.env.example
+```
+
+Export a reusable project config template without secret values:
+
+```bash
+node src/cli.mjs template brand-a-web --out ./brand-a-template.json
 ```
 
 Push selected values from a local `.env` after an explicit dry run:

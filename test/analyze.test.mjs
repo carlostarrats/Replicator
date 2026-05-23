@@ -1142,6 +1142,42 @@ test('env-template exports env names without secret values', async () => {
   }
 });
 
+test('template exports reusable project config without secret values', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-'));
+  const out = join(dir, 'template.json');
+
+  try {
+    const result = await runCli([
+      'template',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const template = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(template.kind, 'vercel-project-template');
+    assert.equal(template.project.framework, 'nextjs');
+    assert.equal(template.project.rootDirectory, 'apps/web');
+    assert.deepEqual(template.env, [
+      { key: 'BLOB_READ_WRITE_TOKEN', target: ['production'], type: 'encrypted' },
+      { key: 'DATABASE_URL', target: ['preview', 'production'], type: 'encrypted' },
+      { key: 'NEXT_PUBLIC_APP_URL', target: ['development', 'preview', 'production'], type: 'plain' },
+      { key: 'OPENAI_API_KEY', target: ['preview', 'production'], type: 'encrypted' },
+    ]);
+    assert.match(template.manualReview[0], /Domains are not included/);
+    assert.doesNotMatch(JSON.stringify(template), /encrypted-payload/);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
   const api = await startFakeVercelApi();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-push-'));

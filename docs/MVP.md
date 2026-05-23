@@ -25,6 +25,7 @@
 - Generate combined migration handoff reports.
 - Run a CI gate that fails on target readiness blockers or source/target drift.
 - Run scheduled overview audits through GitHub Actions.
+- Export reusable project config templates without secret values.
 
 ## Not Yet Implemented
 
