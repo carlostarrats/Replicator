@@ -38,6 +38,20 @@ Authentication uses `VERCEL_TOKEN` when provided. If it is absent, the CLI will 
 
 `duplicate --apply --yes` creates the new Vercel project and copies safe build settings. It does not create environment variables with fake values; instead it prints the exact `vercel env add` checklist for manual secret entry.
 
+## Config File
+
+Pass `--config ./.vcopyrc.json` to load shared defaults:
+
+```json
+{
+  "teamId": "team_123",
+  "testProjectPrefix": "vcopy-test-",
+  "defaultOutDir": "./vcopy-reports"
+}
+```
+
+CLI flags and environment variables override config values. `testProjectPrefix` controls the allowed project-name prefix for guarded destructive writes. `defaultOutDir` is used for the default `analyze` report path when `--out` is not provided.
+
 ## Usage
 
 Run through Node directly:

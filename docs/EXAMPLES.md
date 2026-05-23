@@ -6,6 +6,13 @@ Analyze a project and write a Markdown report:
 node src/cli.mjs analyze vcopy-smoke-test --code-root vercel-smoke-test --out ./analysis.md
 ```
 
+Use shared local defaults:
+
+```bash
+node src/cli.mjs analyze brand-a-web --config ./.vcopyrc.json
+node src/cli.mjs projects --config ./.vcopyrc.json
+```
+
 Analyze a project and write JSON:
 
 ```bash

@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { isKnownCommand } from './cli/command-registry.mjs';
 import { EXIT_CODES } from './cli/exit-codes.mjs';
+import { loadVcopyConfig } from './config/load-config.mjs';
 import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
 import { runCiCheck } from './commands/ci.mjs';
@@ -275,11 +276,14 @@ async function parseArgs(command, args) {
     toConfig: undefined,
     testProjectOnly: false,
     apiBase: process.env.VCOPY_API_BASE || 'https://api.vercel.com',
-    out: command === 'analyze' ? './vcopy-report.md' : undefined,
+    configPath: undefined,
+    out: undefined,
     codeRoot: undefined,
     format: 'markdown',
     token: process.env.VERCEL_TOKEN,
     teamId: process.env.VERCEL_TEAM_ID,
+    testProjectPrefix: undefined,
+    defaultOutDir: undefined,
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -287,6 +291,12 @@ async function parseArgs(command, args) {
 
     if (arg === '--api-base') {
       options.apiBase = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--config') {
+      options.configPath = requireValue(args, index, arg);
       index += 1;
       continue;
     }
@@ -444,6 +454,14 @@ async function parseArgs(command, args) {
     }
 
     options.project = arg;
+  }
+
+  const config = await loadVcopyConfig(options.configPath);
+  options.teamId = options.teamId || config.teamId;
+  options.testProjectPrefix = options.testProjectPrefix || config.testProjectPrefix;
+  options.defaultOutDir = options.defaultOutDir || config.defaultOutDir;
+  if (command === 'analyze' && !options.out) {
+    options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
   const localOnlyCommands = new Set(['routing-sync', 'template-plan', 'viewer']);
