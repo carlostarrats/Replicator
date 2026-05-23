@@ -10,3 +10,12 @@ test('command reference documents every command', async () => {
     assert.match(docs, new RegExp(`## vcopy ${command.name.replace('-', '\\-')}`));
   }
 });
+
+test('security review covers secret and destructive safety', async () => {
+  const docs = await readFile('docs/SECURITY_REVIEW.md', 'utf8');
+
+  assert.match(docs, /Secret output review/);
+  assert.match(docs, /Destructive command review/);
+  assert.match(docs, /vcopy-test-/);
+  assert.match(docs, /npm test/);
+});
