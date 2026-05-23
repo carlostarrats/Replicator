@@ -17,6 +17,7 @@ import { listVercelTeams } from './commands/teams.mjs';
 import { createProjectTemplate } from './commands/template.mjs';
 import { createTemplatePlan } from './commands/template-plan.mjs';
 import { verifyProject } from './commands/verify.mjs';
+import { createViewer } from './commands/viewer.mjs';
 import { createOverview } from './commands/overview.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
 import { renderDuplicateCreated, renderDuplicatePlan } from './output/terminal.mjs';
@@ -30,7 +31,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template', 'template-plan'].includes(command)) {
+  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template', 'template-plan', 'viewer'].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -124,6 +125,12 @@ async function main(argv) {
   if (command === 'template-plan') {
     const output = await createTemplatePlan(options);
     await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'viewer') {
+    const output = await createViewer(options);
+    process.stdout.write(output);
     return 0;
   }
 
@@ -374,7 +381,7 @@ async function parseArgs(command, args) {
     options.project = arg;
   }
 
-  const localOnlyCommands = new Set(['template-plan']);
+  const localOnlyCommands = new Set(['template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -540,6 +547,7 @@ Usage:
   vcopy overview
   vcopy template <project>
   vcopy template-plan --template <template.json> --to <target-project>
+  vcopy viewer [--out ./vcopy-viewer.html]
 
 Options:
   --api-base <url>   Override the Vercel API base URL.

@@ -86,6 +86,12 @@ Preview a local plan from that template:
 node src/cli.mjs template-plan --template ./brand-a-template.json --to brand-c-web
 ```
 
+Create a local JSON report viewer:
+
+```bash
+node src/cli.mjs viewer --out ./vcopy-viewer.html
+```
+
 Push a selected local env value:
 
 ```bash

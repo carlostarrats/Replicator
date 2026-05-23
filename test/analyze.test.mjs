@@ -1224,6 +1224,32 @@ test('template-plan previews a local template without Vercel auth or mutations',
   }
 });
 
+test('viewer writes a local static report viewer without Vercel auth', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-viewer-'));
+  const out = join(dir, 'viewer.html');
+
+  try {
+    const result = await runCli([
+      'viewer',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Viewer saved/);
+    const html = await readFile(out, 'utf8');
+    assert.match(html, /Vercel Config Manager/);
+    assert.match(html, /Load JSON report/);
+    assert.match(html, /This viewer is local-only/);
+    assert.match(html, /type="file"/);
+    assert.doesNotMatch(html, /https:\/\/api\.vercel\.com/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
   const api = await startFakeVercelApi();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-push-'));

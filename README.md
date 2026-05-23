@@ -22,6 +22,7 @@ vcopy report --from <source-project> --to <target-project>
 vcopy overview
 vcopy template <project>
 vcopy template-plan --template <template.json> --to <target-project>
+vcopy viewer [--out ./vcopy-viewer.html]
 ```
 
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
@@ -162,6 +163,12 @@ Preview a local plan from an exported template without Vercel auth or mutations:
 
 ```bash
 node src/cli.mjs template-plan --template ./brand-a-template.json --to brand-c-web
+```
+
+Create a local static viewer for exported JSON reports:
+
+```bash
+node src/cli.mjs viewer --out ./vcopy-viewer.html
 ```
 
 Push selected values from a local `.env` after an explicit dry run:

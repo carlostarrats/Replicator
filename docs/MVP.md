@@ -28,6 +28,7 @@
 - Export reusable project config templates without secret values.
 - Preview local template application plans without Vercel auth or mutations.
 - Comment config CI reports on pull requests through GitHub Actions.
+- Generate a local static JSON report viewer.
 
 ## Not Yet Implemented
 
@@ -36,4 +37,3 @@
 - Migrating integration credentials.
 - Full deployment protection policy mutation.
 - Cron or rewrite mutation.
-- Web UI.
