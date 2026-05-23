@@ -26,6 +26,7 @@
 - Run a CI gate that fails on target readiness blockers or source/target drift.
 - Run scheduled overview audits through GitHub Actions.
 - Export reusable project config templates without secret values.
+- Comment config CI reports on pull requests through GitHub Actions.
 
 ## Not Yet Implemented
 
@@ -34,5 +35,4 @@
 - Migrating integration credentials.
 - Full deployment protection policy mutation.
 - Cron or rewrite mutation.
-- PR comments.
 - Web UI.

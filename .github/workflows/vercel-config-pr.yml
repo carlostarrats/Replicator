@@ -1,0 +1,61 @@
+name: Vercel Config PR Check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    if: ${{ vars.VCOPY_CI_FROM != '' && vars.VCOPY_CI_TO != '' }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+      VCOPY_CI_FROM: ${{ vars.VCOPY_CI_FROM }}
+      VCOPY_CI_TO: ${{ vars.VCOPY_CI_TO }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Vercel config CI
+        id: vcopy
+        run: |
+          set +e
+          node src/cli.mjs ci --from "$VCOPY_CI_FROM" --to "$VCOPY_CI_TO" --out vercel-config-ci.md
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const body = [
+              '## Vercel Config CI',
+              '',
+              fs.readFileSync('vercel-config-ci.md', 'utf8')
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vercel-config-ci
+          path: vercel-config-ci.md
+
+      - name: Fail on config drift
+        if: steps.vcopy.outputs.exit_code != '0'
+        run: exit 1

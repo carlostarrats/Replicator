@@ -143,6 +143,8 @@ node src/cli.mjs overview --projects brand-a-web,brand-b-web --fail-on-drift
 
 The included GitHub Actions workflow `.github/workflows/vercel-config-audit.yml` runs `overview --fail-on-drift` on a weekly schedule and uploads the Markdown report. Configure `VERCEL_TOKEN` as a repository secret, and optionally set `VERCEL_TEAM_ID` and `VCOPY_AUDIT_PROJECTS` as repository variables.
 
+The PR workflow `.github/workflows/vercel-config-pr.yml` runs `vcopy ci` and comments the report on pull requests when `VCOPY_CI_FROM` and `VCOPY_CI_TO` repository variables are configured.
+
 Export an env template without secret values:
 
 ```bash
