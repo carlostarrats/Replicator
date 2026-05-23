@@ -3,23 +3,24 @@
 
 # Replicator
 
-Replicator is a Vercel config manager: a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes. The current CLI binary is `vcopy`.
+Replicator is a Vercel config manager and project variant helper: a Node.js CLI for inspecting, comparing, documenting, and safely preparing duplication workflows across related Vercel projects. The current CLI binary is `vcopy`.
 
 It is designed for real Vercel projects and real project configuration files.
 
 It is built for teams that manage multiple related Vercel projects and need a repeatable way to answer questions like:
 
+- How do we create a new project variant without manually rediscovering every setting?
 - What build settings, domains, env names, and deployment protection settings does this project use?
 - Is a target project ready to deploy?
 - What drift exists between two project variants?
 - Which secret values need manual entry without exposing them in reports?
 - Can we generate a local handoff package for a migration or review?
 
-The CLI reads project metadata and environment variable names/scopes. It does not read or print secret values. In the current release, Replicator does not freely mutate real Vercel projects: real project writes are disabled by default, and guarded Vercel write commands are limited to explicitly protected `vcopy-test-*` targets unless the safety policy is expanded later.
+The CLI reads project metadata and environment variable names/scopes. It does not read or print secret values. In the current release, Replicator can plan duplication workflows and can create a new project with copied build settings, but it does not fully clone a Vercel project and does not freely mutate real Vercel projects. Real project writes are disabled by default, and guarded Vercel write commands are limited to explicitly protected `vcopy-test-*` targets unless the safety policy is expanded later.
 
 ## Overview
 
-Replicator combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded change workflows. It can be used interactively during a migration or in CI to detect readiness blockers and configuration drift.
+Replicator combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded change workflows. It can be used interactively during a migration, while creating a project variant, or in CI to detect readiness blockers and configuration drift.
 
 Key outputs include:
 
@@ -28,6 +29,7 @@ Key outputs include:
 - diffs between two projects
 - CI reports with automation-friendly exit codes
 - local policy results
+- duplicate plans and guarded project creation with copied build settings
 - reusable project templates without secret values
 - local snapshot/audit history files
 - handoff packages with reports, checklists, and a local HTML viewer
@@ -39,11 +41,24 @@ Key outputs include:
 - Checks deployment readiness and can fail automation on blockers.
 - Verifies latest deployment logs and classifies common config errors.
 - Exports local JSON reports with schema/version metadata.
-- Generates reusable project templates and local template apply plans.
+- Creates dry-run duplicate plans and can create a new project with copied build settings.
+- Generates reusable project templates and local template apply plans without secret values.
 - Evaluates local policy files for required env keys, forbidden public keys, required domains, required project settings, forbidden project settings, and blocked env targets.
+- Recommends shared env candidates, project-specific envs, and env scope drift across related projects.
 - Stores local snapshots and audit-history report copies.
 - Generates local handoff packages and a static report viewer.
 - Prepares guarded change workflows for project configuration, environment variable migration, routing updates, deployment protection, and migration handoff.
+
+## Current limits
+
+Replicator is intentionally not a one-click full clone of a Vercel project yet:
+
+- It does not copy secret values out of Vercel.
+- It does not automatically clone production domains, integration credentials, or external service accounts.
+- It does not freely mutate production projects.
+- It does not yet provide a full shared-config inheritance system or a guided visual repair UI.
+
+Instead, the current product focuses on the safe layer around project variants: understand the source project, create a reviewable duplicate plan, copy safe build settings, generate env placeholders, detect drift, and produce handoff/checklist artifacts for the remaining manual steps.
 
 ## Safety model
 
