@@ -28,3 +28,12 @@ test('release checklist includes verification gates', async () => {
   assert.match(docs, /SECURITY_REVIEW/);
   assert.match(docs, /vcopy-test-/);
 });
+
+test('real project policy says real writes are disabled', async () => {
+  const docs = await readFile('docs/REAL_PROJECT_POLICY.md', 'utf8');
+
+  assert.match(docs, /disabled by default/i);
+  assert.match(docs, /vcopy-test-/);
+  assert.match(docs, /allowlist/);
+  assert.match(docs, /dry-run artifact/);
+});
