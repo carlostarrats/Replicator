@@ -18,6 +18,8 @@ vcopy protection-sync --from <source-project> --to <target-project>
 vcopy refactor-env
 vcopy routing-sync --from-config <source-vercel.json> --to-config <target-vercel.json>
 vcopy secrets-migrate --from <source-project> --to <target-project>
+vcopy snapshot-save --report <report.json> --out-dir <directory>
+vcopy snapshot-diff --left <left.json> --right <right.json>
 vcopy teams
 vcopy projects
 vcopy env-template <project>
@@ -293,4 +295,18 @@ Run it against a local JSON report:
 ```bash
 node src/cli.mjs analyze brand-a-web --format json --out ./analysis.json
 node src/cli.mjs policy-check --report ./analysis.json --policy ./policy.json
+```
+
+## Local Snapshots
+
+Save report copies without calling Vercel:
+
+```bash
+node src/cli.mjs snapshot-save --report ./analysis.json --out-dir ./.vcopy/snapshots
+```
+
+Compare two saved analysis reports locally:
+
+```bash
+node src/cli.mjs snapshot-diff --left ./.vcopy/snapshots/a.json --right ./.vcopy/snapshots/b.json
 ```

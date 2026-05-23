@@ -21,6 +21,8 @@ import { refactorEnv } from './commands/refactor-env.mjs';
 import { createMigrationReport } from './commands/report.mjs';
 import { syncRouting } from './commands/routing-sync.mjs';
 import { migrateSecrets } from './commands/secrets-migrate.mjs';
+import { diffSnapshotReports } from './commands/snapshot-diff.mjs';
+import { saveSnapshot } from './commands/snapshot-save.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
 import { createProjectTemplate } from './commands/template.mjs';
 import { createTemplatePlan } from './commands/template-plan.mjs';
@@ -123,6 +125,18 @@ async function main(argv) {
     const result = await checkPolicy(options);
     await writeCommandOutput(result.output, options);
     return result.passed ? EXIT_CODES.ok : EXIT_CODES.policyFailed;
+  }
+
+  if (command === 'snapshot-diff') {
+    const result = await diffSnapshotReports(options);
+    await writeCommandOutput(result.output, options);
+    return result.hasDrift ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
+  }
+
+  if (command === 'snapshot-save') {
+    const output = await saveSnapshot(options);
+    await writeCommandOutput(output, options);
+    return EXIT_CODES.ok;
   }
 
   if (command === 'refactor-env') {
@@ -282,6 +296,8 @@ async function parseArgs(command, args) {
     templateFile: undefined,
     domain: undefined,
     fromConfig: undefined,
+    leftFile: undefined,
+    outDir: undefined,
     toConfig: undefined,
     testProjectOnly: false,
     apiBase: process.env.VCOPY_API_BASE || 'https://api.vercel.com',
@@ -412,6 +428,24 @@ async function parseArgs(command, args) {
       continue;
     }
 
+    if (arg === '--left') {
+      options.leftFile = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--out-dir') {
+      options.outDir = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--right') {
+      options.rightFile = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
     if (arg === '--to-config') {
       options.toConfig = requireValue(args, index, arg);
       index += 1;
@@ -485,7 +519,7 @@ async function parseArgs(command, args) {
     options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
-  const localOnlyCommands = new Set(['policy-check', 'routing-sync', 'template-plan', 'viewer']);
+  const localOnlyCommands = new Set(['policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -534,6 +568,14 @@ async function parseArgs(command, args) {
 
   if (command === 'policy-check' && (!options.reportFile || !options.policyFile)) {
     throw new CliError('Usage: vcopy policy-check --report <analysis.json> --policy <policy.json>', 1);
+  }
+
+  if (command === 'snapshot-diff' && (!options.leftFile || !options.rightFile)) {
+    throw new CliError('Usage: vcopy snapshot-diff --left <left.json> --right <right.json>', 1);
+  }
+
+  if (command === 'snapshot-save' && (!options.reportFile || !options.outDir)) {
+    throw new CliError('Usage: vcopy snapshot-save --report <report.json> --out-dir <directory>', 1);
   }
 
   return options;
@@ -658,6 +700,8 @@ Usage:
   vcopy protection-sync --from <source-project> --to <target-project>
   vcopy routing-sync --from-config <source-vercel.json> --to-config <target-vercel.json>
   vcopy secrets-migrate --from <source-project> --to <target-project>
+  vcopy snapshot-diff --left <left.json> --right <right.json>
+  vcopy snapshot-save --report <report.json> --out-dir <directory>
   vcopy verify <project>
   vcopy teams
   vcopy projects
@@ -688,6 +732,9 @@ Options:
   --template <path>  Template JSON file for template-plan.
   --domain <domain>  Domain for domain-move.
   --from-config <p>  Source vercel.json for routing-sync.
+  --left <path>      Left report JSON for snapshot-diff.
+  --out-dir <path>   Local output directory for snapshot-save.
+  --right <path>     Right report JSON for snapshot-diff.
   --to-config <p>    Target vercel.json for routing-sync.
   --test-project-only
                     Required for destructive test-scoped writes.

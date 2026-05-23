@@ -17,6 +17,8 @@ export const COMMANDS = [
   { name: 'report', permission: 'read-only' },
   { name: 'routing-sync', permission: 'test-write' },
   { name: 'secrets-migrate', permission: 'test-write' },
+  { name: 'snapshot-diff', permission: 'local-only' },
+  { name: 'snapshot-save', permission: 'local-only' },
   { name: 'teams', permission: 'read-only' },
   { name: 'template', permission: 'read-only' },
   { name: 'template-plan', permission: 'local-only' },

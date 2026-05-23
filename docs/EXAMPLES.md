@@ -25,6 +25,13 @@ Run local policy checks against a JSON report:
 node src/cli.mjs policy-check --report ./analysis.json --policy ./policy.json
 ```
 
+Save and compare local report snapshots:
+
+```bash
+node src/cli.mjs snapshot-save --report ./analysis.json --out-dir ./.vcopy/snapshots
+node src/cli.mjs snapshot-diff --left ./.vcopy/snapshots/before.json --right ./.vcopy/snapshots/after.json
+```
+
 Preview a duplicate operation:
 
 ```bash
