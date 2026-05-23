@@ -28,6 +28,7 @@ import { createViewer } from './commands/viewer.mjs';
 import { createOverview } from './commands/overview.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
 import { renderDuplicateCreated, renderDuplicatePlan } from './output/terminal.mjs';
+import { withSchema } from './output/schema-version.mjs';
 import { listProjects } from './vercel/client.mjs';
 
 async function main(argv) {
@@ -46,7 +47,7 @@ async function main(argv) {
   if (command === 'check') {
     const readiness = await checkProject(options);
     const output = options.format === 'json'
-      ? `${JSON.stringify(readiness, null, 2)}\n`
+      ? `${JSON.stringify(withSchema('check', readiness), null, 2)}\n`
       : renderReadiness(readiness);
     await writeCommandOutput(output, options);
     return options.failOnBlocked && readiness.blocked.length > 0 ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
@@ -55,7 +56,7 @@ async function main(argv) {
   if (command === 'diff') {
     const diff = await diffProjects(options);
     const output = options.format === 'json'
-      ? `${JSON.stringify(diff, null, 2)}\n`
+      ? `${JSON.stringify(withSchema('diff', diff), null, 2)}\n`
       : renderDiff(diff);
     await writeCommandOutput(output, options);
     return options.failOnDrift && hasDrift(diff) ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;

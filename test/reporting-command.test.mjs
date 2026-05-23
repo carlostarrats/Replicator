@@ -100,6 +100,8 @@ test('diff can export JSON drift data', async () => {
 
     assert.equal(result.code, 0, result.stderr);
     const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'diff');
     assert.equal(report.leftName, 'brand-a-web');
     assert.equal(report.rightName, 'brand-b-web');
     assert.ok(report.diff.different.some((item) => item.includes('DATABASE_URL')));
@@ -191,6 +193,39 @@ test('ci reports readiness and drift with a failing automation exit code', async
     assert.match(result.stdout, /DATABASE_URL: preview, production -> production/);
   } finally {
     await api.close();
+  }
+});
+
+test('ci can export schema-versioned JSON', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-ci-json-'));
+  const out = join(dir, 'ci.json');
+
+  try {
+    const result = await runCli([
+      'ci',
+      '--from',
+      'brand-a-web',
+      '--to',
+      'brand-b-web',
+      '--api-base',
+      api.apiBase,
+      '--format',
+      'json',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 2);
+    const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'ci');
+    assert.equal(report.status, 'failed');
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
   }
 });
 
@@ -328,6 +363,35 @@ test('overview can fail automation when grouped variants drift', async () => {
     assert.match(result.stdout, /BLOB_READ_WRITE_TOKEN missing from brand-b-web/);
   } finally {
     await api.close();
+  }
+});
+
+test('overview can export schema-versioned JSON', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-overview-json-'));
+  const out = join(dir, 'overview.json');
+
+  try {
+    const result = await runCli([
+      'overview',
+      '--api-base',
+      api.apiBase,
+      '--format',
+      'json',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'overview');
+    assert.equal(report.projectCount, 2);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
   }
 });
 
@@ -481,6 +545,8 @@ test('check can export JSON readiness data', async () => {
 
     assert.equal(result.code, 0, result.stderr);
     const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'check');
     assert.equal(report.score, 80);
     assert.deepEqual(report.blocked, ['DATABASE_URL missing for Preview']);
   } finally {

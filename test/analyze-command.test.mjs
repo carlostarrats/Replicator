@@ -294,6 +294,8 @@ test('analyze can export JSON for automation', async () => {
 
     assert.equal(result.code, 0, result.stderr);
     const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'analysis');
     assert.equal(report.project.name, 'brand-a-web');
     assert.equal(report.envs.length, 4);
     assert.equal(report.domains.length, 2);

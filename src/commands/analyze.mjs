@@ -4,6 +4,7 @@ import { sanitizeDomain, sanitizeEnv, sanitizeProject } from '../analysis/saniti
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
 import { scanCodeEnvReferences } from '../analysis/scan-code-env.mjs';
 import { renderAnalysisReport } from '../output/markdown.mjs';
+import { withSchema } from '../output/schema-version.mjs';
 
 export async function analyzeProject(options) {
   const { project, envs, domains } = await loadConfigSnapshot(options, options.project);
@@ -23,13 +24,13 @@ export async function analyzeProject(options) {
     vercelConfig,
     likelyServices,
     markdown: renderAnalysisReport({ project, envs, domains, codeEnvRefs, vercelConfig, likelyServices }),
-    json: JSON.stringify({
+    json: JSON.stringify(withSchema('analysis', {
       project: sanitizeProject(project),
       envs: envs.map(sanitizeEnv),
       domains: domains.map(sanitizeDomain),
       codeEnvRefs,
       vercelConfig,
       likelyServices,
-    }, null, 2),
+    }), null, 2),
   };
 }

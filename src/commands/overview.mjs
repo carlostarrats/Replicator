@@ -1,5 +1,6 @@
 import { createTeamOverview } from '../analysis/team-overview.mjs';
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
+import { withSchema } from '../output/schema-version.mjs';
 import { renderTeamOverview } from '../output/terminal.mjs';
 import { listProjects } from '../vercel/client.mjs';
 
@@ -12,7 +13,7 @@ export async function createOverview(options) {
   );
   const overview = createTeamOverview(snapshots);
   const output = options.format === 'json'
-    ? `${JSON.stringify(overview, null, 2)}\n`
+    ? `${JSON.stringify(withSchema('overview', overview), null, 2)}\n`
     : renderTeamOverview(overview);
 
   return {

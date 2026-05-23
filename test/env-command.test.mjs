@@ -54,6 +54,8 @@ test('template exports reusable project config without secret values', async () 
 
     assert.equal(result.code, 0, result.stderr);
     const template = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(template.schemaVersion, 1);
+    assert.equal(template.reportType, 'template');
     assert.equal(template.kind, 'vercel-project-template');
     assert.equal(template.project.framework, 'nextjs');
     assert.equal(template.project.rootDirectory, 'apps/web');
@@ -112,6 +114,44 @@ test('template-plan previews a local template without Vercel auth or mutations',
     assert.match(result.stdout, /framework: nextjs/);
     assert.match(result.stdout, /DATABASE_URL - preview, production/);
     assert.match(result.stdout, /This command does not call Vercel or create projects/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('template-plan can export schema-versioned JSON', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-plan-json-'));
+  const templatePath = join(dir, 'template.json');
+  const out = join(dir, 'template-plan.json');
+
+  try {
+    await writeFile(templatePath, JSON.stringify({
+      kind: 'vercel-project-template',
+      sourceProject: 'brand-a-web',
+      project: { framework: 'nextjs' },
+      env: [{ key: 'DATABASE_URL', target: ['preview'], type: 'encrypted' }],
+      manualReview: [],
+    }));
+
+    const result = await runCli([
+      'template-plan',
+      '--template',
+      templatePath,
+      '--to',
+      'brand-c-web',
+      '--format',
+      'json',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(report.reportType, 'template-plan');
+    assert.equal(report.targetProject, 'brand-c-web');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -276,4 +316,3 @@ test('env-rm refuses to delete one target from a multi-target env entry', async 
     await api.close();
   }
 });
-

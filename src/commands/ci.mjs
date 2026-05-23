@@ -1,6 +1,7 @@
 import { diffSnapshots } from '../analysis/diff.mjs';
 import { calculateReadiness } from '../analysis/readiness.mjs';
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
+import { withSchema } from '../output/schema-version.mjs';
 import { renderDiff, renderReadiness } from '../output/terminal.mjs';
 
 export async function runCiCheck(options) {
@@ -25,7 +26,7 @@ export async function runCiCheck(options) {
   return {
     exitCode: failed ? 2 : 0,
     output: options.format === 'json'
-      ? `${JSON.stringify(result, null, 2)}\n`
+      ? `${JSON.stringify(withSchema('ci', result), null, 2)}\n`
       : renderCiReport(result),
   };
 }

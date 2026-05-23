@@ -1,6 +1,7 @@
 import { normalizeTargets } from '../analysis/config-snapshot.mjs';
 import { sanitizeProject } from '../analysis/sanitize.mjs';
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
+import { withSchema } from '../output/schema-version.mjs';
 
 export async function createProjectTemplate(options) {
   const snapshot = await loadConfigSnapshot(options, options.project);
@@ -23,7 +24,7 @@ export async function createProjectTemplate(options) {
     ],
   };
 
-  return `${JSON.stringify(template, null, 2)}\n`;
+  return `${JSON.stringify(withSchema('template', template), null, 2)}\n`;
 }
 
 function pickTemplateSettings(project) {

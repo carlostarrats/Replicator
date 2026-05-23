@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { withSchema } from '../output/schema-version.mjs';
 
 export async function createTemplatePlan(options) {
   if (!options.templateFile) {
@@ -25,7 +26,7 @@ export async function createTemplatePlan(options) {
   };
 
   if (options.format === 'json') {
-    return `${JSON.stringify(plan, null, 2)}\n`;
+    return `${JSON.stringify(withSchema('template-plan', plan), null, 2)}\n`;
   }
 
   return renderTemplatePlan(plan);

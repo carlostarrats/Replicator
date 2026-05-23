@@ -214,6 +214,13 @@ function renderViewerHtml() {
     }
 
     function render(data) {
+      if (data.reportType === 'ci') return renderCi(data);
+      if (data.reportType === 'analysis') return renderAnalysis(data);
+      if (data.reportType === 'check') return renderReadiness(data);
+      if (data.reportType === 'diff') return renderDiff(data);
+      if (data.reportType === 'overview') return renderOverview(data);
+      if (data.reportType === 'template') return renderTemplate(data);
+      if (data.reportType === 'template-plan') return renderTemplatePlan(data);
       if (data.status && data.readiness && data.diff) return renderCi(data);
       if (data.project && data.envs) return renderAnalysis(data);
       if (data.score !== undefined && data.ready) return renderReadiness(data);
