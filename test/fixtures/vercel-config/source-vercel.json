@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/test-sync",
+      "schedule": "0 5 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/test-api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}

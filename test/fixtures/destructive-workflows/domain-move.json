@@ -1,0 +1,36 @@
+{
+  "name": "domain move",
+  "command": "domain-move",
+  "sourceProject": "vcopy-test-source",
+  "targetProject": "vcopy-test-target",
+  "destructive": true,
+  "allowedProjectPrefix": "vcopy-test-",
+  "dryRunCommand": [
+    "domain-move",
+    "--from",
+    "vcopy-test-source",
+    "--to",
+    "vcopy-test-target",
+    "--domain",
+    "vcopy-test.example.com",
+    "--dry-run"
+  ],
+  "applyCommand": [
+    "domain-move",
+    "--from",
+    "vcopy-test-source",
+    "--to",
+    "vcopy-test-target",
+    "--domain",
+    "vcopy-test.example.com",
+    "--test-project-only",
+    "--apply",
+    "--yes"
+  ],
+  "expectedSafety": [
+    "refuses non-test projects",
+    "requires explicit domain",
+    "checks source ownership before removal",
+    "requires --test-project-only --apply --yes for writes"
+  ]
+}

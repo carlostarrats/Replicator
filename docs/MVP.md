@@ -37,3 +37,7 @@
 - Migrating integration credentials.
 - Full deployment protection policy mutation.
 - Cron or rewrite mutation.
+
+## Destructive Workflow Test Contracts
+
+Future destructive workflows must start from the fixtures in `test/fixtures/destructive-workflows/`. Those fixtures only use `vcopy-test-*` projects or local test config files, and the contract tests require `--test-project-only --apply --yes` before any write behavior can be implemented.

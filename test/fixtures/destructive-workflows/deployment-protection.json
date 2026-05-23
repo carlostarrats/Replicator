@@ -1,0 +1,32 @@
+{
+  "name": "deployment protection mutation",
+  "command": "protection-sync",
+  "sourceProject": "vcopy-test-source",
+  "targetProject": "vcopy-test-target",
+  "destructive": true,
+  "allowedProjectPrefix": "vcopy-test-",
+  "dryRunCommand": [
+    "protection-sync",
+    "--from",
+    "vcopy-test-source",
+    "--to",
+    "vcopy-test-target",
+    "--dry-run"
+  ],
+  "applyCommand": [
+    "protection-sync",
+    "--from",
+    "vcopy-test-source",
+    "--to",
+    "vcopy-test-target",
+    "--test-project-only",
+    "--apply",
+    "--yes"
+  ],
+  "expectedSafety": [
+    "refuses non-test projects",
+    "does not copy bypass secrets",
+    "shows before and after policy diff",
+    "requires --test-project-only --apply --yes for writes"
+  ]
+}

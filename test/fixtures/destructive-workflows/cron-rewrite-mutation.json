@@ -1,0 +1,32 @@
+{
+  "name": "cron and rewrite mutation",
+  "command": "routing-sync",
+  "sourceProject": "vcopy-test-source",
+  "targetProject": "vcopy-test-target",
+  "destructive": true,
+  "allowedProjectPrefix": "vcopy-test-",
+  "dryRunCommand": [
+    "routing-sync",
+    "--from-config",
+    "test/fixtures/vercel-config/source-vercel.json",
+    "--to-config",
+    "test/fixtures/vercel-config/target-vercel.json",
+    "--dry-run"
+  ],
+  "applyCommand": [
+    "routing-sync",
+    "--from-config",
+    "test/fixtures/vercel-config/source-vercel.json",
+    "--to-config",
+    "test/fixtures/vercel-config/target-vercel.json",
+    "--test-project-only",
+    "--apply",
+    "--yes"
+  ],
+  "expectedSafety": [
+    "operates on test fixture files only",
+    "shows cron and routing diff before writes",
+    "preserves unrelated target config",
+    "requires --test-project-only --apply --yes for writes"
+  ]
+}
