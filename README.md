@@ -30,6 +30,7 @@ vcopy report --from <source-project> --to <target-project>
 vcopy overview
 vcopy policy-check --report <analysis.json> --policy <policy.json>
 vcopy template <project>
+vcopy template-apply --template <template.json> --to <target-project>
 vcopy template-plan --template <template.json> --to <target-project>
 vcopy viewer [--out ./vcopy-viewer.html]
 ```
@@ -210,6 +211,14 @@ Preview a local plan from an exported template without Vercel auth or mutations:
 ```bash
 node src/cli.mjs template-plan --template ./brand-a-template.json --to brand-c-web
 ```
+
+Apply a template only to a test-scoped target:
+
+```bash
+node src/cli.mjs template-apply --template ./brand-a-template.json --to vcopy-test-brand-c --test-project-only --apply --yes
+```
+
+This creates the project and prints environment placeholders for manual secret entry. It does not create environment variable values.
 
 Create a local static viewer for exported JSON reports:
 

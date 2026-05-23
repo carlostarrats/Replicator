@@ -350,7 +350,17 @@ function handleRequest(request, response, body) {
     return;
   }
 
+  if (request.method === 'POST' && url.pathname === '/v10/projects') {
+    response.statusCode = 201;
+    response.end(JSON.stringify({
+      id: 'prj_template_apply',
+      name: body.name,
+      framework: body.framework,
+      rootDirectory: body.rootDirectory,
+    }));
+    return;
+  }
+
   response.statusCode = 404;
   response.end(JSON.stringify({ error: { message: 'not found' } }));
 }
-

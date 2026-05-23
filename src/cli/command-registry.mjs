@@ -22,6 +22,7 @@ export const COMMANDS = [
   { name: 'snapshot-save', permission: 'local-only' },
   { name: 'teams', permission: 'read-only' },
   { name: 'template', permission: 'read-only' },
+  { name: 'template-apply', permission: 'test-write' },
   { name: 'template-plan', permission: 'local-only' },
   { name: 'verify', permission: 'read-only' },
   { name: 'viewer', permission: 'local-only' },

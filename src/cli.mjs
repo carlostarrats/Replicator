@@ -25,6 +25,7 @@ import { migrateSecrets } from './commands/secrets-migrate.mjs';
 import { diffSnapshotReports } from './commands/snapshot-diff.mjs';
 import { saveSnapshot } from './commands/snapshot-save.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
+import { applyProjectTemplate } from './commands/template-apply.mjs';
 import { createProjectTemplate } from './commands/template.mjs';
 import { createTemplatePlan } from './commands/template-plan.mjs';
 import { verifyProject } from './commands/verify.mjs';
@@ -185,6 +186,12 @@ async function main(argv) {
 
   if (command === 'template') {
     const output = await createProjectTemplate(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'template-apply') {
+    const output = await applyProjectTemplate(options);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -569,8 +576,8 @@ async function parseArgs(command, args) {
     throw new CliError('Usage: vcopy verify <project>', 1);
   }
 
-  if (command === 'template-plan' && (!options.templateFile || !options.toProject)) {
-    throw new CliError('Usage: vcopy template-plan --template <template.json> --to <target-project>', 1);
+  if ((command === 'template-plan' || command === 'template-apply') && (!options.templateFile || !options.toProject)) {
+    throw new CliError(`Usage: vcopy ${command} --template <template.json> --to <target-project>`, 1);
   }
 
   if (command === 'policy-check' && (!options.reportFile || !options.policyFile)) {
@@ -724,6 +731,7 @@ Usage:
   vcopy overview
   vcopy policy-check --report <analysis.json> --policy <policy.json>
   vcopy template <project>
+  vcopy template-apply --template <template.json> --to <target-project>
   vcopy template-plan --template <template.json> --to <target-project>
   vcopy viewer [--out ./vcopy-viewer.html]
 
