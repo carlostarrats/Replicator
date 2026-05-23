@@ -46,3 +46,13 @@ test('local code review records follow-up hardening areas', async () => {
   assert.match(docs, /Policy rules/);
   assert.match(docs, /Schema validation/);
 });
+
+test('start here guide walks through the safe local workflow', async () => {
+  const docs = await readFile('docs/START_HERE.md', 'utf8');
+
+  assert.match(docs, /Start Here/);
+  assert.match(docs, /npm run dogfood/);
+  assert.match(docs, /fake Vercel API/i);
+  assert.match(docs, /vcopy-test-/);
+  assert.match(docs, /handoff/);
+});
