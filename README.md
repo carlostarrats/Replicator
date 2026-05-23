@@ -36,6 +36,8 @@ vcopy template-plan --template <template.json> --to <target-project>
 vcopy viewer [--out ./vcopy-viewer.html]
 ```
 
+See `docs/COMMANDS.md` for the full command reference.
+
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
 
 Destructive writes are test-scoped. Commands that mutate domains, deployment protection, routing config, or selected local secret values require `--test-project-only --apply --yes` and refuse non-`vcopy-test-*` projects.
