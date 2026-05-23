@@ -2,6 +2,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { isKnownCommand } from './cli/command-registry.mjs';
 import { EXIT_CODES } from './cli/exit-codes.mjs';
 import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
@@ -37,30 +38,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (![
-    'analyze',
-    'check',
-    'ci',
-    'diff',
-    'domain-move',
-    'duplicate',
-    'integration-plan',
-    'protection-sync',
-    'refactor-env',
-    'routing-sync',
-    'secrets-migrate',
-    'verify',
-    'teams',
-    'projects',
-    'env-template',
-    'env-push',
-    'env-rm',
-    'report',
-    'overview',
-    'template',
-    'template-plan',
-    'viewer',
-  ].includes(command)) {
+  if (!isKnownCommand(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 

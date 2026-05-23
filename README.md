@@ -253,3 +253,9 @@ npm test
 - `2`: readiness blocker or drift detected
 - `3`: unsafe destructive write refused
 - `4`: local policy check failed
+
+## Permission Categories
+
+- `read-only`: reads Vercel or local files and writes only reports.
+- `local-only`: does not require Vercel auth or Vercel API access.
+- `test-write`: can mutate only `vcopy-test-*` projects or local test files and requires explicit apply flags.
