@@ -19,3 +19,12 @@ test('security review covers secret and destructive safety', async () => {
   assert.match(docs, /vcopy-test-/);
   assert.match(docs, /npm test/);
 });
+
+test('release checklist includes verification gates', async () => {
+  const docs = await readFile('docs/RELEASE.md', 'utf8');
+
+  assert.match(docs, /npm test/);
+  assert.match(docs, /git diff --check/);
+  assert.match(docs, /SECURITY_REVIEW/);
+  assert.match(docs, /vcopy-test-/);
+});
