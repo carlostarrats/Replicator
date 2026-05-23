@@ -37,3 +37,12 @@ test('real project policy says real writes are disabled', async () => {
   assert.match(docs, /allowlist/);
   assert.match(docs, /dry-run artifact/);
 });
+
+test('local code review records follow-up hardening areas', async () => {
+  const docs = await readFile('docs/CODE_REVIEW.md', 'utf8');
+
+  assert.match(docs, /Local Code Review/);
+  assert.match(docs, /Dogfood workflow/);
+  assert.match(docs, /Policy rules/);
+  assert.match(docs, /Schema validation/);
+});
