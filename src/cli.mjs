@@ -2,7 +2,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { isKnownCommand } from './cli/command-registry.mjs';
+import { getCommand, isKnownCommand } from './cli/command-registry.mjs';
 import { EXIT_CODES } from './cli/exit-codes.mjs';
 import { loadVcopyConfig } from './config/load-config.mjs';
 import { analyzeProject } from './commands/analyze.mjs';
@@ -35,6 +35,7 @@ import { createOverview } from './commands/overview.mjs';
 import { checkPolicy } from './commands/policy-check.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
 import { renderDuplicateCreated, renderDuplicatePlan } from './output/terminal.mjs';
+import { createLogger } from './output/logger.mjs';
 import { withSchema } from './output/schema-version.mjs';
 import { listProjects } from './vercel/client.mjs';
 
@@ -51,6 +52,8 @@ async function main(argv) {
   }
 
   const options = await parseArgs(command, rest);
+  const logger = createLogger(options);
+  logger.debug(`permission: ${getCommand(command).permission}\n`);
   if (command === 'check') {
     const readiness = await checkProject(options);
     const output = options.format === 'json'
@@ -211,7 +214,7 @@ async function main(argv) {
 
   if (command === 'viewer') {
     const output = await createViewer(options);
-    process.stdout.write(output);
+    logger.info(output);
     return 0;
   }
 
@@ -241,8 +244,8 @@ async function main(argv) {
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, options.format === 'json' ? report.json : report.markdown, 'utf8');
 
-  process.stdout.write('Project analyzed successfully.\n');
-  process.stdout.write(`Report saved to ${outPath}\n`);
+  logger.info('Project analyzed successfully.\n');
+  logger.info(`Report saved to ${outPath}\n`);
   return 0;
 }
 
@@ -284,15 +287,16 @@ function hasDrift(result) {
 }
 
 async function writeCommandOutput(output, options) {
+  const logger = createLogger(options);
   if (!options.out) {
-    process.stdout.write(output);
+    logger.info(output);
     return;
   }
 
   const outPath = resolve(options.out);
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, output, 'utf8');
-  process.stdout.write(`Report saved to ${outPath}\n`);
+  logger.info(`Report saved to ${outPath}\n`);
 }
 
 async function parseArgs(command, args) {
@@ -306,6 +310,8 @@ async function parseArgs(command, args) {
     dryRun: false,
     apply: false,
     yes: false,
+    quiet: false,
+    verbose: false,
     failOnBlocked: false,
     failOnDrift: false,
     envFile: undefined,
@@ -491,6 +497,16 @@ async function parseArgs(command, args) {
 
     if (arg === '--yes') {
       options.yes = true;
+      continue;
+    }
+
+    if (arg === '--quiet') {
+      options.quiet = true;
+      continue;
+    }
+
+    if (arg === '--verbose') {
+      options.verbose = true;
       continue;
     }
 
@@ -755,6 +771,8 @@ Options:
   --fail-on-drift    Exit 2 from diff when drift is detected.
   --out <path>       Markdown report destination.
   --projects <list>  Comma-separated project names for refactor-env.
+  --quiet            Suppress informational stdout.
+  --verbose          Print diagnostic details to stderr.
   --env-file <path>  Local .env file for env-push.
   --keys <list>      Comma-separated env keys for env-push.
   --key <key>        Env key for env-rm.

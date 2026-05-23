@@ -60,6 +60,10 @@ Pass `--config ./.vcopyrc.json` to load shared defaults:
 
 CLI flags and environment variables override config values. `testProjectPrefix` controls the allowed project-name prefix for guarded destructive writes. `defaultOutDir` is used for the default `analyze` report path when `--out` is not provided.
 
+## Output Controls
+
+Use `--quiet` to suppress informational stdout. Use `--verbose` to print diagnostic details such as the command permission category to stderr.
+
 ## Usage
 
 Run through Node directly:
