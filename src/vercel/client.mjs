@@ -57,6 +57,17 @@ export async function createProject({ apiBase, token, teamId, project }) {
   });
 }
 
+export async function updateProject({ apiBase, token, teamId, idOrName, project }) {
+  return vercelRequest({
+    apiBase,
+    token,
+    teamId,
+    pathname: `/v9/projects/${encodeURIComponent(idOrName)}`,
+    method: 'PATCH',
+    body: project,
+  });
+}
+
 export async function createProjectEnv({ apiBase, token, teamId, idOrName, env }) {
   return vercelRequest({
     apiBase,
@@ -74,6 +85,27 @@ export async function removeProjectEnv({ apiBase, token, teamId, idOrName, envId
     token,
     teamId,
     pathname: `/v9/projects/${encodeURIComponent(idOrName)}/env/${encodeURIComponent(envId)}`,
+    method: 'DELETE',
+  });
+}
+
+export async function addProjectDomain({ apiBase, token, teamId, idOrName, domain }) {
+  return vercelRequest({
+    apiBase,
+    token,
+    teamId,
+    pathname: `/v10/projects/${encodeURIComponent(idOrName)}/domains`,
+    method: 'POST',
+    body: { name: domain },
+  });
+}
+
+export async function removeProjectDomain({ apiBase, token, teamId, idOrName, domain }) {
+  return vercelRequest({
+    apiBase,
+    token,
+    teamId,
+    pathname: `/v9/projects/${encodeURIComponent(idOrName)}/domains/${encodeURIComponent(domain)}`,
     method: 'DELETE',
   });
 }

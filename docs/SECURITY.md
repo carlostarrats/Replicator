@@ -36,6 +36,14 @@ The command does not print secret values in terminal, Markdown, or JSON output.
 
 `env-rm` refuses to remove one target from an env entry that is scoped to multiple Vercel targets, because deleting by env ID can remove the whole entry. In that case, recreate the variable manually in Vercel with the intended scopes.
 
+## Destructive Test Workflows
+
+Domain moves, selected secret migration, deployment protection sync, and routing mutation are guarded test workflows. They require `--test-project-only --apply --yes`, and project writes are refused unless both source and target project names start with `vcopy-test-`.
+
+`secrets-migrate` reads selected values from a local `.env` file and sends only the explicitly allowlisted keys to Vercel. It does not read decrypted values from Vercel and does not print secret values.
+
+`routing-sync` is local-file based and intended for test fixture config files.
+
 ## Authentication
 
 The CLI uses `VERCEL_TOKEN` or `--token` when provided. If neither is set, it attempts to use the local Vercel CLI auth file created by `vercel login`.

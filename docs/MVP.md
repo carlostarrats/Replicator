@@ -29,15 +29,12 @@
 - Preview local template application plans without Vercel auth or mutations.
 - Comment config CI reports on pull requests through GitHub Actions.
 - Generate a local static JSON report viewer.
-
-## Not Yet Implemented
-
-- Bulk or automatic secret migration.
-- Moving domains.
-- Migrating integration credentials.
-- Full deployment protection policy mutation.
-- Cron or rewrite mutation.
+- Migrate selected local secret values to `vcopy-test-*` projects only.
+- Move domains between `vcopy-test-*` projects only.
+- Generate integration reconnection plans without copying credentials.
+- Sync deployment protection settings to `vcopy-test-*` projects without bypass secrets.
+- Sync cron and rewrite config between local test fixture files.
 
 ## Destructive Workflow Test Contracts
 
-Future destructive workflows must start from the fixtures in `test/fixtures/destructive-workflows/`. Those fixtures only use `vcopy-test-*` projects or local test config files, and the contract tests require `--test-project-only --apply --yes` before any write behavior can be implemented.
+Destructive workflows start from the fixtures in `test/fixtures/destructive-workflows/`. Those fixtures only use `vcopy-test-*` projects or local test config files, and the contract tests require `--test-project-only --apply --yes` before write behavior can run.

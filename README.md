@@ -1,6 +1,6 @@
 # Vercel Config Manager
 
-A small, non-mutating CLI for analyzing Vercel project configuration and exporting a safe Markdown report.
+A CLI for analyzing, duplicating, validating, and safely testing Vercel project configuration workflows.
 
 Implemented commands:
 
@@ -11,8 +11,13 @@ vcopy duplicate --from <source-project> --to <new-project> --apply --yes
 vcopy check <project>
 vcopy ci --from <source-project> --to <target-project>
 vcopy diff <project-a> <project-b>
+vcopy domain-move --from <source-project> --to <target-project> --domain <domain>
 vcopy verify <project>
+vcopy integration-plan --from <source-project> --to <target-project>
+vcopy protection-sync --from <source-project> --to <target-project>
 vcopy refactor-env
+vcopy routing-sync --from-config <source-vercel.json> --to-config <target-vercel.json>
+vcopy secrets-migrate --from <source-project> --to <target-project>
 vcopy teams
 vcopy projects
 vcopy env-template <project>
@@ -26,6 +31,8 @@ vcopy viewer [--out ./vcopy-viewer.html]
 ```
 
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
+
+Destructive writes are test-scoped. Commands that mutate domains, deployment protection, routing config, or selected local secret values require `--test-project-only --apply --yes` and refuse non-`vcopy-test-*` projects.
 
 Authentication uses `VERCEL_TOKEN` when provided. If it is absent, the CLI will try the local Vercel CLI auth file created by `vercel login`.
 
@@ -120,6 +127,25 @@ Create a combined migration handoff report:
 
 ```bash
 node src/cli.mjs report --from brand-a-web --to brand-b-web --code-root /path/to/repo --out ./migration.md
+```
+
+Preview destructive workflows before any test-scoped apply:
+
+```bash
+node src/cli.mjs integration-plan --from brand-a-web --to brand-b-web --dry-run
+node src/cli.mjs protection-sync --from vcopy-test-source --to vcopy-test-target --dry-run
+node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --dry-run
+node src/cli.mjs routing-sync --from-config ./source-vercel.json --to-config ./target-vercel.json --dry-run
+node src/cli.mjs secrets-migrate --from vcopy-test-source --to vcopy-test-target --env-file ./.env --keys DATABASE_URL --target preview --dry-run
+```
+
+Apply destructive workflows only to `vcopy-test-*` projects or local test files:
+
+```bash
+node src/cli.mjs protection-sync --from vcopy-test-source --to vcopy-test-target --test-project-only --apply --yes
+node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --test-project-only --apply --yes
+node src/cli.mjs routing-sync --from-config ./source-vercel.json --to-config ./target-vercel.json --test-project-only --apply --yes
+node src/cli.mjs secrets-migrate --from vcopy-test-source --to vcopy-test-target --env-file ./.env --keys DATABASE_URL --target preview --test-project-only --apply --yes
 ```
 
 Inspect the latest deployment and classify common config failures:

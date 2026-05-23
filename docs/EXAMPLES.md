@@ -60,6 +60,25 @@ Create a migration handoff report:
 node src/cli.mjs report --from brand-a-web --to brand-b-web --code-root ./apps/web --out ./migration.md
 ```
 
+Preview guarded destructive workflows:
+
+```bash
+node src/cli.mjs integration-plan --from brand-a-web --to brand-b-web --dry-run
+node src/cli.mjs protection-sync --from vcopy-test-source --to vcopy-test-target --dry-run
+node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --dry-run
+node src/cli.mjs routing-sync --from-config ./source-vercel.json --to-config ./target-vercel.json --dry-run
+node src/cli.mjs secrets-migrate --from vcopy-test-source --to vcopy-test-target --env-file ./.env --keys DATABASE_URL --target preview --dry-run
+```
+
+Apply guarded destructive workflows only to test projects or test files:
+
+```bash
+node src/cli.mjs protection-sync --from vcopy-test-source --to vcopy-test-target --test-project-only --apply --yes
+node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --test-project-only --apply --yes
+node src/cli.mjs routing-sync --from-config ./source-vercel.json --to-config ./target-vercel.json --test-project-only --apply --yes
+node src/cli.mjs secrets-migrate --from vcopy-test-source --to vcopy-test-target --env-file ./.env --keys DATABASE_URL --target preview --test-project-only --apply --yes
+```
+
 Create a team-level overview:
 
 ```bash

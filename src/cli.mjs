@@ -6,13 +6,18 @@ import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
 import { runCiCheck } from './commands/ci.mjs';
 import { diffProjects } from './commands/diff.mjs';
+import { moveDomain } from './commands/domain-move.mjs';
 import { duplicateProject } from './commands/duplicate.mjs';
 import { pushEnv } from './commands/env-push.mjs';
 import { removeEnv } from './commands/env-rm.mjs';
 import { createEnvTemplate } from './commands/env-template.mjs';
+import { createIntegrationPlan } from './commands/integration-plan.mjs';
 import { listVercelProjects } from './commands/projects.mjs';
+import { syncProtection } from './commands/protection-sync.mjs';
 import { refactorEnv } from './commands/refactor-env.mjs';
 import { createMigrationReport } from './commands/report.mjs';
+import { syncRouting } from './commands/routing-sync.mjs';
+import { migrateSecrets } from './commands/secrets-migrate.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
 import { createProjectTemplate } from './commands/template.mjs';
 import { createTemplatePlan } from './commands/template-plan.mjs';
@@ -31,7 +36,30 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template', 'template-plan', 'viewer'].includes(command)) {
+  if (![
+    'analyze',
+    'check',
+    'ci',
+    'diff',
+    'domain-move',
+    'duplicate',
+    'integration-plan',
+    'protection-sync',
+    'refactor-env',
+    'routing-sync',
+    'secrets-migrate',
+    'verify',
+    'teams',
+    'projects',
+    'env-template',
+    'env-push',
+    'env-rm',
+    'report',
+    'overview',
+    'template',
+    'template-plan',
+    'viewer',
+  ].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -63,6 +91,36 @@ async function main(argv) {
   if (command === 'duplicate') {
     const result = await duplicateProject(options);
     const output = renderDuplicateResult(result, options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'secrets-migrate') {
+    const output = await migrateSecrets(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'domain-move') {
+    const output = await moveDomain(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'integration-plan') {
+    const output = await createIntegrationPlan(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'protection-sync') {
+    const output = await syncProtection(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'routing-sync') {
+    const output = await syncRouting(options);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -232,6 +290,10 @@ async function parseArgs(command, args) {
     key: undefined,
     target: undefined,
     templateFile: undefined,
+    domain: undefined,
+    fromConfig: undefined,
+    toConfig: undefined,
+    testProjectOnly: false,
     apiBase: process.env.VCOPY_API_BASE || 'https://api.vercel.com',
     out: command === 'analyze' ? './vcopy-report.md' : undefined,
     codeRoot: undefined,
@@ -327,6 +389,24 @@ async function parseArgs(command, args) {
       continue;
     }
 
+    if (arg === '--domain') {
+      options.domain = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--from-config') {
+      options.fromConfig = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--to-config') {
+      options.toConfig = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
     if (arg === '--to') {
       options.toProject = requireValue(args, index, arg);
       index += 1;
@@ -345,6 +425,11 @@ async function parseArgs(command, args) {
 
     if (arg === '--yes') {
       options.yes = true;
+      continue;
+    }
+
+    if (arg === '--test-project-only') {
+      options.testProjectOnly = true;
       continue;
     }
 
@@ -381,7 +466,7 @@ async function parseArgs(command, args) {
     options.project = arg;
   }
 
-  const localOnlyCommands = new Set(['template-plan', 'viewer']);
+  const localOnlyCommands = new Set(['routing-sync', 'template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -403,7 +488,15 @@ async function parseArgs(command, args) {
     throw new CliError('Usage: vcopy diff <project-a> <project-b>', 1);
   }
 
-  if (command === 'duplicate' || command === 'report' || command === 'ci') {
+  if ([
+    'duplicate',
+    'report',
+    'ci',
+    'secrets-migrate',
+    'domain-move',
+    'integration-plan',
+    'protection-sync',
+  ].includes(command)) {
     if (!options.fromProject || !options.toProject) {
       throw new CliError(`Usage: vcopy ${command} --from <source-project> --to <target-project>`, 1);
     }
@@ -536,7 +629,12 @@ Usage:
   vcopy check <project>
   vcopy ci --from <source-project> --to <target-project>
   vcopy diff <project-a> <project-b>
+  vcopy domain-move --from <source-project> --to <target-project> --domain <domain>
   vcopy refactor-env
+  vcopy integration-plan --from <source-project> --to <target-project>
+  vcopy protection-sync --from <source-project> --to <target-project>
+  vcopy routing-sync --from-config <source-vercel.json> --to-config <target-vercel.json>
+  vcopy secrets-migrate --from <source-project> --to <target-project>
   vcopy verify <project>
   vcopy teams
   vcopy projects
@@ -562,6 +660,11 @@ Options:
   --key <key>        Env key for env-rm.
   --target <target>  Vercel env target for env-push.
   --template <path>  Template JSON file for template-plan.
+  --domain <domain>  Domain for domain-move.
+  --from-config <p>  Source vercel.json for routing-sync.
+  --to-config <p>    Target vercel.json for routing-sync.
+  --test-project-only
+                    Required for destructive test-scoped writes.
   --team-id <id>     Vercel team ID for scoped projects.
   --token <token>    Vercel bearer token. Prefer VERCEL_TOKEN.
 `);
