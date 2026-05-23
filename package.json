@@ -1,6 +1,7 @@
 {
   "name": "vercel-config-manager",
   "version": "0.1.0",
+  "description": "Replicator, a Vercel config manager for safe project analysis, drift checks, and migration handoff workflows.",
   "private": false,
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 # Start Here
 
-This is the safe path for trying Vercel Config Manager without touching real Vercel projects.
+This is the safe path for trying Replicator without touching real Vercel projects.
 
 ## 1. Install locally
 

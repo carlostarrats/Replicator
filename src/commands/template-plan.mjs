@@ -38,7 +38,7 @@ function renderTemplatePlan(plan) {
     { title: 'Settings', items: formatSettings(plan.settings).map((item) => item.replace(/^- /, '')) },
     { title: 'Environment variable placeholders', items: formatEnv(plan.env).map((item) => item.replace(/^- /, '')) },
     { title: 'Manual review needed', items: plan.manualReview },
-    { title: 'Next steps', items: ['Review the plan before running any test-scoped apply command.'] },
+    { title: 'Next steps', items: ['Review the plan before running any protected test apply command.'] },
   ]);
 }
 

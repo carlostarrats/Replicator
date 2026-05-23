@@ -1,9 +1,11 @@
 <img width="4433" height="929" alt="Replicator1" src="https://github.com/user-attachments/assets/f8e676bb-3ae4-4b95-9d84-8e4fbc81ff9f" />
 
 
-# Vercel Config Manager
+# Replicator
 
-Vercel Config Manager (`vcopy`) is a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes. It is designed for real Vercel projects and real project configuration files.
+Replicator is a Vercel config manager: a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes. The current CLI binary is `vcopy`.
+
+It is designed for real Vercel projects and real project configuration files.
 
 It is built for teams that manage multiple related Vercel projects and need a repeatable way to answer questions like:
 
@@ -13,11 +15,11 @@ It is built for teams that manage multiple related Vercel projects and need a re
 - Which secret values need manual entry without exposing them in reports?
 - Can we generate a local handoff package for a migration or review?
 
-The CLI reads project metadata and environment variable names/scopes. It does not read or print secret values, and real project mutation is disabled by default.
+The CLI reads project metadata and environment variable names/scopes. It does not read or print secret values. In the current release, Replicator does not freely mutate real Vercel projects: real project writes are disabled by default, and guarded Vercel write commands are limited to explicitly protected `vcopy-test-*` targets unless the safety policy is expanded later.
 
 ## Overview
 
-`vcopy` combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded change workflows. It can be used interactively during a migration or in CI to detect readiness blockers and configuration drift.
+Replicator combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded change workflows. It can be used interactively during a migration or in CI to detect readiness blockers and configuration drift.
 
 Key outputs include:
 

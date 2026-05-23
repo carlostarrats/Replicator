@@ -22,7 +22,7 @@ test('viewer writes a local static report viewer without Vercel auth', async () 
     assert.equal(result.code, 0, result.stderr);
     assert.match(result.stdout, /Viewer saved/);
     const html = await readFile(out, 'utf8');
-    assert.match(html, /Vercel Config Manager/);
+    assert.match(html, /Replicator/);
     assert.match(html, /Load JSON report/);
     assert.match(html, /This viewer is local-only/);
     assert.match(html, /type="file"/);
@@ -31,4 +31,3 @@ test('viewer writes a local static report viewer without Vercel auth', async () 
     await rm(dir, { recursive: true, force: true });
   }
 });
-

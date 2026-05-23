@@ -737,7 +737,9 @@ function requireValue(args, index, optionName) {
 }
 
 function printHelp() {
-  process.stdout.write(`Vercel Config Manager
+  process.stdout.write(`Replicator
+
+A Vercel config manager for safe project analysis, drift checks, and migration handoff workflows.
 
 Usage:
   vcopy analyze [project] [--out ./vcopy-report.md]
@@ -793,7 +795,7 @@ Options:
   --right <path>     Right report JSON for snapshot-diff.
   --to-config <p>    Target vercel.json for routing-sync.
   --test-project-only
-                    Required for destructive test-scoped writes.
+                    Required for protected test writes.
   --team-id <id>     Vercel team ID for scoped projects.
   --token <token>    Vercel bearer token. Prefer VERCEL_TOKEN.
 `);

@@ -1,6 +1,6 @@
 # Security Model
 
-Vercel Config Manager is designed to avoid owning secrets.
+Replicator is designed to avoid owning secrets.
 
 ## What the CLI Reads
 

@@ -57,7 +57,7 @@ test('fixture integration flow produces analysis ci template and viewer artifact
     assert.match(await readFile(analysis, 'utf8'), /brand-a-web/);
     assert.match(await readFile(ci, 'utf8'), /Vercel config CI/);
     assert.match(await readFile(template, 'utf8'), /vercel-project-template/);
-    assert.match(await readFile(viewer, 'utf8'), /Vercel Config Manager/);
+    assert.match(await readFile(viewer, 'utf8'), /Replicator/);
   } finally {
     await api.close();
     await rm(dir, { recursive: true, force: true });

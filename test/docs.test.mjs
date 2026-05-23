@@ -60,11 +60,15 @@ test('start here guide walks through the safe local workflow', async () => {
 test('readme is public-ready and avoids test-harness wording', async () => {
   const docs = await readFile('README.md', 'utf8');
 
+  assert.match(docs, /^# Replicator/m);
+  assert.match(docs, /Vercel config manager/i);
   assert.match(docs, /## Overview/);
   assert.match(docs, /## What it does/);
   assert.match(docs, /## Safety model/);
   assert.match(docs, /## License/);
   assert.match(docs, /designed for real Vercel projects/i);
+  assert.match(docs, /current release/i);
+  assert.match(docs, /does not freely mutate real Vercel projects/i);
   assert.match(docs, /local Vercel API test server/i);
   assert.doesNotMatch(docs, /\bfake\b/i);
   assert.doesNotMatch(docs, /simulat/i);

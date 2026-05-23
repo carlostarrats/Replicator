@@ -14,7 +14,7 @@ export function renderViewerHtml() {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vercel Config Manager Viewer</title>
+  <title>Replicator Viewer</title>
   <style>
     :root {
       color-scheme: light;
@@ -173,7 +173,7 @@ export function renderViewerHtml() {
   <main>
     <header>
       <section>
-        <h1>Vercel Config Manager</h1>
+        <h1>Replicator</h1>
         <p class="deck">Load JSON report exports from analyze, check, diff, ci, overview, template, or template-plan. This viewer is local-only and never calls Vercel.</p>
       </section>
       <section class="loader" aria-label="Load JSON report">

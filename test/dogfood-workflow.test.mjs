@@ -18,7 +18,7 @@ test('dogfood script runs the full local test server workflow', async () => {
     assert.match(await readFile(join(dir, 'policy.txt'), 'utf8'), /Policy passed/);
     assert.match(await readFile(join(dir, 'template-plan.md'), 'utf8'), /Template plan/);
     assert.match(await readFile(join(dir, 'handoff', 'README.md'), 'utf8'), /brand-a-web/);
-    assert.match(await readFile(join(dir, 'viewer.html'), 'utf8'), /Vercel Config Manager/);
+    assert.match(await readFile(join(dir, 'viewer.html'), 'utf8'), /Replicator/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

@@ -1,4 +1,4 @@
-# Vercel Config Manager Command Reference
+# Replicator Command Reference
 
 All commands are designed to avoid secret value exposure. Commands marked `test-write` require explicit apply flags and are intended for `vcopy-test-*` projects or local test files.
 

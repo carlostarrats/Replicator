@@ -23,7 +23,7 @@ test('loads defaults from .vcopyrc.json', async () => {
     });
 
     assert.equal(result.code, 0, result.stderr);
-    assert.match(await readFile(out, 'utf8'), /Vercel Config Manager/);
+    assert.match(await readFile(out, 'utf8'), /Replicator/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
