@@ -1,0 +1,15 @@
+{
+  "name": "vercel-config-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "vcopy": "./src/cli.mjs"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

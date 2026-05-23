@@ -1,0 +1,34 @@
+# MVP Status
+
+## Implemented
+
+- Authenticate with `VERCEL_TOKEN`, `--token`, or local Vercel CLI auth.
+- List teams.
+- List projects.
+- Select or pass a source project.
+- Read project settings.
+- Read safe deployment protection indicators exposed on the project payload.
+- Read env var names and scopes without secret values.
+- Read domains.
+- Analyze local `process.env.*` references.
+- Analyze local `vercel.json` crons and routing rules.
+- Detect likely services from env var names.
+- Create Markdown and JSON analysis reports.
+- Compare two projects.
+- Produce readiness reports.
+- Inspect latest deployment and classify common env failures.
+- Create dry-run duplicate plans.
+- Create new duplicate projects with safe build settings.
+- Export env templates without values.
+- Suggest shared env/refactor candidates.
+
+## Not Yet Implemented
+
+- Writing real env variables.
+- Moving domains.
+- Migrating integration credentials.
+- Full deployment protection policy mutation.
+- Cron or rewrite mutation.
+- Scheduled audits.
+- CI/PR comments.
+- Web UI.

@@ -1,0 +1,6 @@
+.DS_Store
+.vercel/
+vercel-smoke-test/.vercel/
+node_modules/
+coverage/
+*.log
