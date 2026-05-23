@@ -305,7 +305,18 @@ Create a policy file:
 ```json
 {
   "requiredEnvKeys": ["DATABASE_URL", "OPENAI_API_KEY"],
-  "forbiddenPublicEnvKeys": ["NEXT_PUBLIC_SECRET_TOKEN"]
+  "forbiddenPublicEnvKeys": ["NEXT_PUBLIC_SECRET_TOKEN"],
+  "requiredDomains": ["brand-a.example.com"],
+  "requiredProjectSettings": {
+    "framework": "nextjs",
+    "rootDirectory": "apps/web"
+  },
+  "forbiddenProjectSettings": {
+    "autoExposeSystemEnvs": true
+  },
+  "forbiddenEnvTargets": [
+    { "key": "DATABASE_URL", "targets": ["development"] }
+  ]
 }
 ```
 

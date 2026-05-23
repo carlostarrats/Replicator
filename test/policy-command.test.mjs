@@ -104,3 +104,85 @@ test('policy-check passes when local report satisfies policy', async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('policy-check evaluates domains and project settings', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-policy-settings-'));
+
+  try {
+    const report = join(dir, 'analysis.json');
+    const policy = join(dir, 'policy.json');
+    await writeFile(report, JSON.stringify({
+      reportType: 'analysis',
+      project: {
+        name: 'brand-a-web',
+        framework: 'nextjs',
+        rootDirectory: 'apps/web',
+        autoExposeSystemEnvs: true,
+      },
+      envs: [],
+      domains: [{ name: 'brand-a.example.com' }],
+    }));
+    await writeFile(policy, JSON.stringify({
+      requiredDomains: ['brand-a.example.com', 'www.brand-a.example.com'],
+      requiredProjectSettings: {
+        framework: 'nextjs',
+        rootDirectory: 'apps/admin',
+      },
+      forbiddenProjectSettings: {
+        autoExposeSystemEnvs: true,
+      },
+    }));
+
+    const result = await runCli([
+      'policy-check',
+      '--report',
+      report,
+      '--policy',
+      policy,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 4);
+    assert.match(result.stdout, /www\.brand-a\.example\.com domain missing/);
+    assert.match(result.stdout, /rootDirectory expected apps\/admin but found apps\/web/);
+    assert.match(result.stdout, /autoExposeSystemEnvs must not be true/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('policy-check evaluates forbidden env targets', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-policy-targets-'));
+
+  try {
+    const report = join(dir, 'analysis.json');
+    const policy = join(dir, 'policy.json');
+    await writeFile(report, JSON.stringify({
+      reportType: 'analysis',
+      envs: [
+        { key: 'DATABASE_URL', target: ['production', 'development'] },
+      ],
+    }));
+    await writeFile(policy, JSON.stringify({
+      forbiddenEnvTargets: [
+        { key: 'DATABASE_URL', targets: ['development'] },
+      ],
+    }));
+
+    const result = await runCli([
+      'policy-check',
+      '--report',
+      report,
+      '--policy',
+      policy,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 4);
+    assert.match(result.stdout, /DATABASE_URL must not target development/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
