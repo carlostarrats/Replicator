@@ -25,6 +25,7 @@ vcopy env-push <project>
 vcopy env-rm <project>
 vcopy report --from <source-project> --to <target-project>
 vcopy overview
+vcopy policy-check --report <analysis.json> --policy <policy.json>
 vcopy template <project>
 vcopy template-plan --template <template.json> --to <target-project>
 vcopy viewer [--out ./vcopy-viewer.html]
@@ -37,6 +38,8 @@ Destructive writes are test-scoped. Commands that mutate domains, deployment pro
 Authentication uses `VERCEL_TOKEN` when provided. If it is absent, the CLI will try the local Vercel CLI auth file created by `vercel login`.
 
 `duplicate --apply --yes` creates the new Vercel project and copies safe build settings. It does not create environment variables with fake values; instead it prints the exact `vercel env add` checklist for manual secret entry.
+
+`policy-check` is local-only. It evaluates a JSON report against a local policy file and exits `4` when the policy fails.
 
 ## Config File
 
@@ -273,3 +276,21 @@ npm test
 - `read-only`: reads Vercel or local files and writes only reports.
 - `local-only`: does not require Vercel auth or Vercel API access.
 - `test-write`: can mutate only `vcopy-test-*` projects or local test files and requires explicit apply flags.
+
+## Local Policy Checks
+
+Create a policy file:
+
+```json
+{
+  "requiredEnvKeys": ["DATABASE_URL", "OPENAI_API_KEY"],
+  "forbiddenPublicEnvKeys": ["NEXT_PUBLIC_SECRET_TOKEN"]
+}
+```
+
+Run it against a local JSON report:
+
+```bash
+node src/cli.mjs analyze brand-a-web --format json --out ./analysis.json
+node src/cli.mjs policy-check --report ./analysis.json --policy ./policy.json
+```

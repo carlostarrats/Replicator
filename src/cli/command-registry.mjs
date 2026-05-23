@@ -10,6 +10,7 @@ export const COMMANDS = [
   { name: 'env-template', permission: 'read-only' },
   { name: 'integration-plan', permission: 'read-only' },
   { name: 'overview', permission: 'read-only' },
+  { name: 'policy-check', permission: 'local-only' },
   { name: 'projects', permission: 'read-only' },
   { name: 'protection-sync', permission: 'test-write' },
   { name: 'refactor-env', permission: 'read-only' },

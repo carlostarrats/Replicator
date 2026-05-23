@@ -27,6 +27,7 @@ import { createTemplatePlan } from './commands/template-plan.mjs';
 import { verifyProject } from './commands/verify.mjs';
 import { createViewer } from './commands/viewer.mjs';
 import { createOverview } from './commands/overview.mjs';
+import { checkPolicy } from './commands/policy-check.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
 import { renderDuplicateCreated, renderDuplicatePlan } from './output/terminal.mjs';
 import { withSchema } from './output/schema-version.mjs';
@@ -116,6 +117,12 @@ async function main(argv) {
     const result = await createOverview(options);
     await writeCommandOutput(result.output, options);
     return options.failOnDrift && result.hasDrift ? EXIT_CODES.driftOrBlocked : EXIT_CODES.ok;
+  }
+
+  if (command === 'policy-check') {
+    const result = await checkPolicy(options);
+    await writeCommandOutput(result.output, options);
+    return result.passed ? EXIT_CODES.ok : EXIT_CODES.policyFailed;
   }
 
   if (command === 'refactor-env') {
@@ -269,6 +276,8 @@ async function parseArgs(command, args) {
     envFile: undefined,
     keys: undefined,
     key: undefined,
+    policyFile: undefined,
+    reportFile: undefined,
     target: undefined,
     templateFile: undefined,
     domain: undefined,
@@ -363,6 +372,18 @@ async function parseArgs(command, args) {
 
     if (arg === '--key') {
       options.key = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--policy') {
+      options.policyFile = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--report') {
+      options.reportFile = requireValue(args, index, arg);
       index += 1;
       continue;
     }
@@ -464,7 +485,7 @@ async function parseArgs(command, args) {
     options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
-  const localOnlyCommands = new Set(['routing-sync', 'template-plan', 'viewer']);
+  const localOnlyCommands = new Set(['policy-check', 'routing-sync', 'template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -509,6 +530,10 @@ async function parseArgs(command, args) {
 
   if (command === 'template-plan' && (!options.templateFile || !options.toProject)) {
     throw new CliError('Usage: vcopy template-plan --template <template.json> --to <target-project>', 1);
+  }
+
+  if (command === 'policy-check' && (!options.reportFile || !options.policyFile)) {
+    throw new CliError('Usage: vcopy policy-check --report <analysis.json> --policy <policy.json>', 1);
   }
 
   return options;
@@ -641,6 +666,7 @@ Usage:
   vcopy env-rm <project>
   vcopy report --from <source-project> --to <target-project>
   vcopy overview
+  vcopy policy-check --report <analysis.json> --policy <policy.json>
   vcopy template <project>
   vcopy template-plan --template <template.json> --to <target-project>
   vcopy viewer [--out ./vcopy-viewer.html]
@@ -656,6 +682,8 @@ Options:
   --env-file <path>  Local .env file for env-push.
   --keys <list>      Comma-separated env keys for env-push.
   --key <key>        Env key for env-rm.
+  --policy <path>    Local policy JSON for policy-check.
+  --report <path>    Local report JSON for policy-check.
   --target <target>  Vercel env target for env-push.
   --template <path>  Template JSON file for template-plan.
   --domain <domain>  Domain for domain-move.

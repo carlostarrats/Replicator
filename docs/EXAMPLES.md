@@ -19,6 +19,12 @@ Analyze a project and write JSON:
 node src/cli.mjs analyze vcopy-smoke-test --format json --out ./analysis.json
 ```
 
+Run local policy checks against a JSON report:
+
+```bash
+node src/cli.mjs policy-check --report ./analysis.json --policy ./policy.json
+```
+
 Preview a duplicate operation:
 
 ```bash
