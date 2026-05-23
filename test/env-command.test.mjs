@@ -159,6 +159,35 @@ test('template-plan can export schema-versioned JSON', async () => {
   }
 });
 
+test('template file validation reports invalid fields clearly', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-invalid-'));
+  const templatePath = join(dir, 'template.json');
+
+  try {
+    await writeFile(templatePath, JSON.stringify({
+      kind: 'vercel-project-template',
+      project: { framework: 'nextjs' },
+      env: [{ key: 'DATABASE_URL', target: 'preview' }],
+    }));
+
+    const result = await runCli([
+      'template-plan',
+      '--template',
+      templatePath,
+      '--to',
+      'brand-c-web',
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Invalid template.json/);
+    assert.match(result.stderr, /env\[0\].target must be an array of strings/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
   const api = await startFakeVercelApi();

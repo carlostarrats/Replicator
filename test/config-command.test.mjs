@@ -57,3 +57,24 @@ test('uses config team scope for fake API requests', async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('config file validation reports invalid fields clearly', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-config-invalid-'));
+
+  try {
+    const config = join(dir, '.vcopyrc.json');
+    await writeFile(config, JSON.stringify({
+      teamId: 123,
+    }));
+
+    const result = await runCli(['viewer', '--config', config, '--out', join(dir, 'viewer.html')], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Invalid .vcopyrc.json/);
+    assert.match(result.stderr, /teamId must be a string/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

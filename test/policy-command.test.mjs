@@ -186,3 +186,35 @@ test('policy-check evaluates forbidden env targets', async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('policy file validation reports invalid fields clearly', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-policy-invalid-'));
+
+  try {
+    const report = join(dir, 'analysis.json');
+    const policy = join(dir, 'policy.json');
+    await writeFile(report, JSON.stringify({
+      reportType: 'analysis',
+      envs: [],
+    }));
+    await writeFile(policy, JSON.stringify({
+      requiredEnvKeys: 'DATABASE_URL',
+    }));
+
+    const result = await runCli([
+      'policy-check',
+      '--report',
+      report,
+      '--policy',
+      policy,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Invalid policy.json/);
+    assert.match(result.stderr, /requiredEnvKeys must be an array of strings/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

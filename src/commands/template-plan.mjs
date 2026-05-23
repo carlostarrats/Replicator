@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { renderSections } from '../output/sections.mjs';
 import { withSchema } from '../output/schema-version.mjs';
+import { validateTemplate } from '../validation/local-schemas.mjs';
 
 export async function createTemplatePlan(options) {
   if (!options.templateFile) {
@@ -11,9 +12,7 @@ export async function createTemplatePlan(options) {
   }
 
   const template = JSON.parse(await readFile(options.templateFile, 'utf8'));
-  if (template.kind !== 'vercel-project-template') {
-    throw new Error('Template file is not a vcopy Vercel project template.');
-  }
+  validateTemplate(template);
 
   const plan = {
     targetProject: options.toProject,

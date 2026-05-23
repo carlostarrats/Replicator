@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { evaluatePolicy } from '../policy/evaluate-policy.mjs';
+import { validatePolicy } from '../validation/local-schemas.mjs';
 
 export async function checkPolicy(options) {
   if (!options.reportFile || !options.policyFile) {
@@ -8,6 +9,7 @@ export async function checkPolicy(options) {
 
   const report = JSON.parse(await readFile(options.reportFile, 'utf8'));
   const policy = JSON.parse(await readFile(options.policyFile, 'utf8'));
+  validatePolicy(policy);
   const result = evaluatePolicy(report, policy);
 
   if (result.passed) {

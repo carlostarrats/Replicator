@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { assertTestProjectWrite } from './destructive-safety.mjs';
+import { validateTemplate } from '../validation/local-schemas.mjs';
 import { createProject } from '../vercel/client.mjs';
 
 export async function applyProjectTemplate(options) {
@@ -8,9 +9,7 @@ export async function applyProjectTemplate(options) {
   }
 
   const template = JSON.parse(await readFile(options.templateFile, 'utf8'));
-  if (template.kind !== 'vercel-project-template') {
-    throw new Error('Template file is not a vcopy Vercel project template.');
-  }
+  validateTemplate(template);
 
   assertTestProjectWrite(options, [options.toProject]);
 
