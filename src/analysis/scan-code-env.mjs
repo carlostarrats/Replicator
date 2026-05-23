@@ -1,7 +1,9 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-const ENV_REFERENCE = /process\.env\.([A-Z0-9_]+)/g;
+const DOT_ENV_REFERENCE = /process\.env\.([A-Z0-9_]+)/g;
+const BRACKET_ENV_REFERENCE = /process\.env\[['"`]([A-Z0-9_]+)['"`]\]/g;
+const DESTRUCTURED_ENV_REFERENCE = /const\s*{([^}]+)}\s*=\s*process\.env/g;
 const SCANNED_EXTENSIONS = new Set(['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx']);
 const SKIPPED_DIRS = new Set(['.git', '.next', '.vercel', 'node_modules', 'dist', 'build', 'coverage']);
 
@@ -34,13 +36,33 @@ async function walk(root, current, refs) {
     }
 
     const content = await readFile(path, 'utf8');
-    for (const match of content.matchAll(ENV_REFERENCE)) {
-      const key = match[1];
-      const files = refs.get(key) || new Set();
-      files.add(relative(root, path));
-      refs.set(key, files);
+    recordMatches(refs, relative(root, path), content.matchAll(DOT_ENV_REFERENCE));
+    recordMatches(refs, relative(root, path), content.matchAll(BRACKET_ENV_REFERENCE));
+    recordDestructuredMatches(refs, relative(root, path), content.matchAll(DESTRUCTURED_ENV_REFERENCE));
+  }
+}
+
+function recordMatches(refs, file, matches) {
+  for (const match of matches) {
+    recordRef(refs, match[1], file);
+  }
+}
+
+function recordDestructuredMatches(refs, file, matches) {
+  for (const match of matches) {
+    for (const part of match[1].split(',')) {
+      const key = part.trim().split(':')[0].trim();
+      if (/^[A-Z0-9_]+$/.test(key)) {
+        recordRef(refs, key, file);
+      }
     }
   }
+}
+
+function recordRef(refs, key, file) {
+  const files = refs.get(key) || new Set();
+  files.add(file);
+  refs.set(key, files);
 }
 
 function isScannedFile(name) {
