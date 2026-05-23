@@ -1,3 +1,6 @@
+<img width="4433" height="929" alt="Replicator1" src="https://github.com/user-attachments/assets/f8e676bb-3ae4-4b95-9d84-8e4fbc81ff9f" />
+
+
 # Vercel Config Manager
 
 Vercel Config Manager (`vcopy`) is a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes.
