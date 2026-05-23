@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
+import { runCiCheck } from './commands/ci.mjs';
 import { diffProjects } from './commands/diff.mjs';
 import { duplicateProject } from './commands/duplicate.mjs';
 import { pushEnv } from './commands/env-push.mjs';
@@ -27,7 +28,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview'].includes(command)) {
+  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview'].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -48,6 +49,12 @@ async function main(argv) {
       : renderDiff(diff);
     await writeCommandOutput(output, options);
     return options.failOnDrift && hasDrift(diff) ? 2 : 0;
+  }
+
+  if (command === 'ci') {
+    const result = await runCiCheck(options);
+    await writeCommandOutput(result.output, options);
+    return result.exitCode;
   }
 
   if (command === 'duplicate') {
@@ -366,7 +373,7 @@ async function parseArgs(command, args) {
     throw new CliError('Usage: vcopy diff <project-a> <project-b>', 1);
   }
 
-  if (command === 'duplicate' || command === 'report') {
+  if (command === 'duplicate' || command === 'report' || command === 'ci') {
     if (!options.fromProject || !options.toProject) {
       throw new CliError(`Usage: vcopy ${command} --from <source-project> --to <target-project>`, 1);
     }
@@ -493,6 +500,7 @@ Usage:
   vcopy analyze [project] [--out ./vcopy-report.md]
   vcopy duplicate --from <source-project> --to <new-project> [--dry-run|--apply]
   vcopy check <project>
+  vcopy ci --from <source-project> --to <target-project>
   vcopy diff <project-a> <project-b>
   vcopy refactor-env
   vcopy verify <project>

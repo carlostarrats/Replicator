@@ -9,6 +9,7 @@ vcopy analyze
 vcopy duplicate --from <source-project> --to <new-project> --dry-run
 vcopy duplicate --from <source-project> --to <new-project> --apply --yes
 vcopy check <project>
+vcopy ci --from <source-project> --to <target-project>
 vcopy diff <project-a> <project-b>
 vcopy verify <project>
 vcopy refactor-env
@@ -75,6 +76,13 @@ Fail CI when readiness has blockers:
 
 ```bash
 node src/cli.mjs check brand-b-web --fail-on-blocked
+```
+
+Run the combined CI gate for target readiness and source/target drift:
+
+```bash
+node src/cli.mjs ci --from brand-a-web --to brand-b-web
+node src/cli.mjs ci --from brand-a-web --to brand-b-web --out ./vercel-config-ci.md
 ```
 
 Write a readiness report:

@@ -613,6 +613,32 @@ test('report combines analysis readiness duplicate plan and diff', async () => {
   }
 });
 
+test('ci reports readiness and drift with a failing automation exit code', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'ci',
+      '--from',
+      'brand-a-web',
+      '--to',
+      'brand-b-web',
+      '--api-base',
+      api.apiBase,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 2);
+    assert.match(result.stdout, /Vercel config CI/);
+    assert.match(result.stdout, /Status: failed/);
+    assert.match(result.stdout, /DATABASE_URL missing for Preview/);
+    assert.match(result.stdout, /DATABASE_URL: preview, production -> production/);
+  } finally {
+    await api.close();
+  }
+});
+
 test('check reports practical readiness and blocked environment gaps', async () => {
   const api = await startFakeVercelApi();
 

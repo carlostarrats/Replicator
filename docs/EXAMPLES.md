@@ -30,6 +30,12 @@ Check readiness:
 node src/cli.mjs check vcopy-smoke-test
 ```
 
+Run the CI gate:
+
+```bash
+node src/cli.mjs ci --from vcopy-smoke-test --to vcopy-smoke-test-copy --out ./vercel-config-ci.md
+```
+
 Verify the latest deployment:
 
 ```bash

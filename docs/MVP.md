@@ -23,6 +23,7 @@
 - Push explicitly selected local `.env` values to Vercel with dry-run/apply guards.
 - Suggest shared env/refactor candidates.
 - Generate combined migration handoff reports.
+- Run a CI gate that fails on target readiness blockers or source/target drift.
 
 ## Not Yet Implemented
 
@@ -32,5 +33,5 @@
 - Full deployment protection policy mutation.
 - Cron or rewrite mutation.
 - Scheduled audits.
-- CI/PR comments.
+- PR comments.
 - Web UI.
