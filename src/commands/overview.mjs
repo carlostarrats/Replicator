@@ -11,10 +11,12 @@ export async function createOverview(options) {
     projects.map((project) => loadConfigSnapshot(options, project.name)),
   );
   const overview = createTeamOverview(snapshots);
+  const output = options.format === 'json'
+    ? `${JSON.stringify(overview, null, 2)}\n`
+    : renderTeamOverview(overview);
 
-  if (options.format === 'json') {
-    return `${JSON.stringify(overview, null, 2)}\n`;
-  }
-
-  return renderTeamOverview(overview);
+  return {
+    output,
+    hasDrift: overview.groups.some((group) => group.drift.length > 0),
+  };
 }

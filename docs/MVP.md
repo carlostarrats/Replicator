@@ -24,6 +24,7 @@
 - Suggest shared env/refactor candidates.
 - Generate combined migration handoff reports.
 - Run a CI gate that fails on target readiness blockers or source/target drift.
+- Run scheduled overview audits through GitHub Actions.
 
 ## Not Yet Implemented
 
@@ -32,6 +33,5 @@
 - Migrating integration credentials.
 - Full deployment protection policy mutation.
 - Cron or rewrite mutation.
-- Scheduled audits.
 - PR comments.
 - Web UI.

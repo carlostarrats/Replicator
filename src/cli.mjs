@@ -71,9 +71,9 @@ async function main(argv) {
   }
 
   if (command === 'overview') {
-    const output = await createOverview(options);
-    await writeCommandOutput(output, options);
-    return 0;
+    const result = await createOverview(options);
+    await writeCommandOutput(result.output, options);
+    return options.failOnDrift && result.hasDrift ? 2 : 0;
   }
 
   if (command === 'refactor-env') {

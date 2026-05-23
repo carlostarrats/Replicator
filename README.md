@@ -137,7 +137,10 @@ Create a team-level overview that groups related variants and highlights drift:
 ```bash
 node src/cli.mjs overview
 node src/cli.mjs overview --projects brand-a-web,brand-b-web --format json --out ./overview.json
+node src/cli.mjs overview --projects brand-a-web,brand-b-web --fail-on-drift
 ```
+
+The included GitHub Actions workflow `.github/workflows/vercel-config-audit.yml` runs `overview --fail-on-drift` on a weekly schedule and uploads the Markdown report. Configure `VERCEL_TOKEN` as a repository secret, and optionally set `VERCEL_TEAM_ID` and `VCOPY_AUDIT_PROJECTS` as repository variables.
 
 Export an env template without secret values:
 

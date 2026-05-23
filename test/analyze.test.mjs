@@ -907,6 +907,26 @@ test('overview groups related projects and surfaces variant drift', async () => 
   }
 });
 
+test('overview can fail automation when grouped variants drift', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'overview',
+      '--api-base',
+      api.apiBase,
+      '--fail-on-drift',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 2);
+    assert.match(result.stdout, /BLOB_READ_WRITE_TOKEN missing from brand-b-web/);
+  } finally {
+    await api.close();
+  }
+});
+
 test('verify classifies failed deployment logs into config fixes', async () => {
   const api = await startFakeVercelApi();
 

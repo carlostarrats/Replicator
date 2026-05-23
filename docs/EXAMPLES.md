@@ -65,6 +65,7 @@ Create a team-level overview:
 ```bash
 node src/cli.mjs overview
 node src/cli.mjs overview --projects brand-a-web,brand-b-web --format json --out ./overview.json
+node src/cli.mjs overview --projects brand-a-web,brand-b-web --fail-on-drift
 ```
 
 Export env names without values:
