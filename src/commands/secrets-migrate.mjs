@@ -1,4 +1,5 @@
 import { readEnvFile } from '../analysis/read-env-file.mjs';
+import { renderSections } from '../output/sections.mjs';
 import { createProjectEnv } from '../vercel/client.mjs';
 import { assertDryRunOrTestWrite } from './destructive-safety.mjs';
 
@@ -39,10 +40,8 @@ export async function migrateSecrets(options) {
 }
 
 function renderSecretMigration(title, entries) {
-  return [
-    title,
-    '',
-    ...entries.map((entry) => `- ${entry.key} - ${entry.target}`),
-    '',
-  ].join('\n');
+  return renderSections(title, [
+    { title: 'Summary', items: entries.map((entry) => `${entry.key} - ${entry.target}`) },
+    { title: 'Next steps', items: ['Add or verify secret values directly in Vercel; do not commit generated env files.'] },
+  ]);
 }

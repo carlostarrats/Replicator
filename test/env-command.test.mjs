@@ -110,10 +110,12 @@ test('template-plan previews a local template without Vercel auth or mutations',
 
     assert.equal(result.code, 0, result.stderr);
     assert.match(result.stdout, /Template plan for brand-c-web/);
+    assert.match(result.stdout, /^.+\n\nSummary:\n/m);
     assert.match(result.stdout, /Source template: brand-a-web/);
     assert.match(result.stdout, /framework: nextjs/);
     assert.match(result.stdout, /DATABASE_URL - preview, production/);
     assert.match(result.stdout, /This command does not call Vercel or create projects/);
+    assert.match(result.stdout, /Next steps:/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

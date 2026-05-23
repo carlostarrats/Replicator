@@ -107,6 +107,36 @@ test('bulk secret migration writes only selected keys to vcopy-test targets', as
   }
 });
 
+test('secret migration dry-run uses standardized output sections', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-secrets-dry-run-'));
+  const envFile = join(dir, '.env');
+
+  try {
+    await writeFile(envFile, 'DATABASE_URL=postgres://secret\n');
+    const result = await runCli([
+      'secrets-migrate',
+      '--from',
+      'vcopy-test-source',
+      '--to',
+      'vcopy-test-target',
+      '--env-file',
+      envFile,
+      '--keys',
+      'DATABASE_URL',
+      '--target',
+      'preview',
+      '--dry-run',
+    ], { VERCEL_TOKEN: 'test-token' });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /^.+\n\nSummary:\n/m);
+    assert.match(result.stdout, /Next steps:/);
+    assert.doesNotMatch(result.stdout, /postgres:\/\/secret/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('domain move refuses real projects and moves only vcopy-test domains', async () => {
   const api = await startDestructiveFakeApi();
 

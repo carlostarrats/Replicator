@@ -65,6 +65,7 @@ test('diff compares build settings and environment variable scopes', async () =>
 
     assert.equal(result.code, 0, result.stderr);
     assert.match(result.stdout, /Comparing brand-a-web and brand-b-web/);
+    assert.match(result.stdout, /^.+\n\nSummary:\n/m);
     assert.match(result.stdout, /Same:/);
     assert.match(result.stdout, /Framework: nextjs/);
     assert.match(result.stdout, /Different:/);
@@ -73,6 +74,7 @@ test('diff compares build settings and environment variable scopes', async () =>
     assert.match(result.stdout, /NEXT_PUBLIC_BRAND/);
     assert.match(result.stdout, /Domain brand-a\.example\.com/);
     assert.match(result.stdout, /Domain brand-b\.example\.com/);
+    assert.match(result.stdout, /Next steps:/);
   } finally {
     await api.close();
   }
@@ -243,11 +245,13 @@ test('check reports practical readiness and blocked environment gaps', async () 
     });
 
     assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /^.+\n\nSummary:\n/m);
     assert.match(result.stdout, /Deployment readiness: 80%/);
     assert.match(result.stdout, /Ready:/);
     assert.match(result.stdout, /Build settings configured/);
     assert.match(result.stdout, /Blocked:/);
     assert.match(result.stdout, /DATABASE_URL missing for Preview/);
+    assert.match(result.stdout, /Next steps:/);
   } finally {
     await api.close();
   }

@@ -1,40 +1,24 @@
-export function renderDiff({ leftName, rightName, diff }) {
-  const lines = [
-    `Comparing ${leftName} and ${rightName}`,
-    '',
-    'Same:',
-    ...formatList(diff.same),
-    '',
-    'Different:',
-    ...formatList(diff.different),
-    '',
-    `Missing from ${leftName}:`,
-    ...formatList(diff.missingFromLeft),
-    '',
-    `Missing from ${rightName}:`,
-    ...formatList(diff.missingFromRight),
-    '',
-  ];
+import { renderSections } from './sections.mjs';
 
-  return `${lines.join('\n')}`;
+export function renderDiff({ leftName, rightName, diff }) {
+  return renderSections(`Comparing ${leftName} and ${rightName}`, [
+    { title: 'Summary', items: [`${diff.same.length} same`, `${diff.different.length} different`] },
+    { title: 'Same', items: diff.same },
+    { title: 'Different', items: diff.different },
+    { title: `Missing from ${leftName}`, items: diff.missingFromLeft },
+    { title: `Missing from ${rightName}`, items: diff.missingFromRight },
+    { title: 'Next steps', items: ['Review differences before copying settings or changing domains.'] },
+  ]);
 }
 
 export function renderReadiness(readiness) {
-  const lines = [
-    `Deployment readiness: ${readiness.score}%`,
-    '',
-    'Ready:',
-    ...formatList(readiness.ready),
-    '',
-    'Needs attention:',
-    ...formatList(readiness.needsAttention),
-    '',
-    'Blocked:',
-    ...formatList(readiness.blocked),
-    '',
-  ];
-
-  return `${lines.join('\n')}`;
+  return renderSections(`Deployment readiness: ${readiness.score}%`, [
+    { title: 'Summary', items: [`Deployment readiness: ${readiness.score}%`] },
+    { title: 'Ready', items: readiness.ready },
+    { title: 'Needs attention', items: readiness.needsAttention },
+    { title: 'Blocked', items: readiness.blocked },
+    { title: 'Next steps', items: readiness.blocked.length ? ['Resolve blocked items before deployment.'] : ['Continue with deployment verification.'] },
+  ]);
 }
 
 export function renderDuplicatePlan(plan) {

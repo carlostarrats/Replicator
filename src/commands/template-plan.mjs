@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { renderSections } from '../output/sections.mjs';
 import { withSchema } from '../output/schema-version.mjs';
 
 export async function createTemplatePlan(options) {
@@ -33,21 +34,13 @@ export async function createTemplatePlan(options) {
 }
 
 function renderTemplatePlan(plan) {
-  return [
-    `Template plan for ${plan.targetProject}`,
-    '',
-    `Source template: ${plan.sourceProject || 'unknown'}`,
-    '',
-    'Settings:',
-    ...formatSettings(plan.settings),
-    '',
-    'Environment variable placeholders:',
-    ...formatEnv(plan.env),
-    '',
-    'Manual review needed:',
-    ...formatList(plan.manualReview),
-    '',
-  ].join('\n');
+  return renderSections(`Template plan for ${plan.targetProject}`, [
+    { title: 'Summary', items: [`Source template: ${plan.sourceProject || 'unknown'}`] },
+    { title: 'Settings', items: formatSettings(plan.settings).map((item) => item.replace(/^- /, '')) },
+    { title: 'Environment variable placeholders', items: formatEnv(plan.env).map((item) => item.replace(/^- /, '')) },
+    { title: 'Manual review needed', items: plan.manualReview },
+    { title: 'Next steps', items: ['Review the plan before running any test-scoped apply command.'] },
+  ]);
 }
 
 function formatSettings(settings) {
