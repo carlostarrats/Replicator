@@ -3,12 +3,12 @@
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { startFakeVercelApi } from '../test/helpers/fake-vercel-api.mjs';
+import { startLocalVercelApiSimulator } from '../test/helpers/local-vercel-api-simulator.mjs';
 
 const outDir = resolve(parseOutDir(process.argv.slice(2)) || './.vcopy/dogfood');
 
 await mkdir(outDir, { recursive: true });
-const api = await startFakeVercelApi();
+const api = await startLocalVercelApiSimulator();
 
 try {
   const analysis = join(outDir, 'analysis.json');

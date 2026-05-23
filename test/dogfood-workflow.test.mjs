@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-test('dogfood script runs the full local fake-api workflow', async () => {
+test('dogfood script runs the full local simulator workflow', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-dogfood-'));
 
   try {

@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 
-export async function startFakeVercelApi(options = {}) {
+export async function startLocalVercelApiSimulator(options = {}) {
   const requests = [];
   const rateLimitedPaths = new Set();
   const server = createServer((request, response) => {
@@ -256,7 +256,7 @@ export async function startFakeVercelApi(options = {}) {
   };
 }
 
-export async function startDestructiveFakeApi() {
+export async function startDestructiveLocalVercelApiSimulator() {
   const requests = [];
   const server = createServer((request, response) => {
     let body = '';

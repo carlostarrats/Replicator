@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startFakeVercelApi } from './helpers/fake-vercel-api.mjs';
+import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
 
 test('viewer writes a local static report viewer without Vercel auth', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-viewer-'));
