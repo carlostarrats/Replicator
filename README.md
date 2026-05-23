@@ -6,6 +6,7 @@ Implemented commands:
 
 ```bash
 vcopy analyze
+vcopy audit-save --report <report.json> --out-dir <directory>
 vcopy duplicate --from <source-project> --to <new-project> --dry-run
 vcopy duplicate --from <source-project> --to <new-project> --apply --yes
 vcopy check <project>
@@ -309,4 +310,10 @@ Compare two saved analysis reports locally:
 
 ```bash
 node src/cli.mjs snapshot-diff --left ./.vcopy/snapshots/a.json --right ./.vcopy/snapshots/b.json
+```
+
+Store audit-history copies of generated reports:
+
+```bash
+node src/cli.mjs audit-save --report ./ci.json --out-dir ./.vcopy/audit
 ```

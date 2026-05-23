@@ -1,5 +1,6 @@
 export const COMMANDS = [
   { name: 'analyze', permission: 'read-only' },
+  { name: 'audit-save', permission: 'local-only' },
   { name: 'check', permission: 'read-only' },
   { name: 'ci', permission: 'read-only' },
   { name: 'diff', permission: 'read-only' },

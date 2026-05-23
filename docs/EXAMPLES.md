@@ -32,6 +32,12 @@ node src/cli.mjs snapshot-save --report ./analysis.json --out-dir ./.vcopy/snaps
 node src/cli.mjs snapshot-diff --left ./.vcopy/snapshots/before.json --right ./.vcopy/snapshots/after.json
 ```
 
+Save an audit-history copy:
+
+```bash
+node src/cli.mjs audit-save --report ./ci.json --out-dir ./.vcopy/audit
+```
+
 Preview a duplicate operation:
 
 ```bash

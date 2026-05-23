@@ -6,6 +6,7 @@ import { isKnownCommand } from './cli/command-registry.mjs';
 import { EXIT_CODES } from './cli/exit-codes.mjs';
 import { loadVcopyConfig } from './config/load-config.mjs';
 import { analyzeProject } from './commands/analyze.mjs';
+import { saveAuditReport } from './commands/audit-save.mjs';
 import { checkProject } from './commands/check.mjs';
 import { runCiCheck } from './commands/ci.mjs';
 import { diffProjects } from './commands/diff.mjs';
@@ -135,6 +136,12 @@ async function main(argv) {
 
   if (command === 'snapshot-save') {
     const output = await saveSnapshot(options);
+    await writeCommandOutput(output, options);
+    return EXIT_CODES.ok;
+  }
+
+  if (command === 'audit-save') {
+    const output = await saveAuditReport(options);
     await writeCommandOutput(output, options);
     return EXIT_CODES.ok;
   }
@@ -519,7 +526,7 @@ async function parseArgs(command, args) {
     options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
-  const localOnlyCommands = new Set(['policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
+  const localOnlyCommands = new Set(['audit-save', 'policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -576,6 +583,10 @@ async function parseArgs(command, args) {
 
   if (command === 'snapshot-save' && (!options.reportFile || !options.outDir)) {
     throw new CliError('Usage: vcopy snapshot-save --report <report.json> --out-dir <directory>', 1);
+  }
+
+  if (command === 'audit-save' && (!options.reportFile || !options.outDir)) {
+    throw new CliError('Usage: vcopy audit-save --report <report.json> --out-dir <directory>', 1);
   }
 
   return options;
@@ -690,6 +701,7 @@ function printHelp() {
 
 Usage:
   vcopy analyze [project] [--out ./vcopy-report.md]
+  vcopy audit-save --report <report.json> --out-dir <directory>
   vcopy duplicate --from <source-project> --to <new-project> [--dry-run|--apply]
   vcopy check <project>
   vcopy ci --from <source-project> --to <target-project>
