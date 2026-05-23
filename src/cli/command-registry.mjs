@@ -9,6 +9,7 @@ export const COMMANDS = [
   { name: 'env-push', permission: 'test-write' },
   { name: 'env-rm', permission: 'test-write' },
   { name: 'env-template', permission: 'read-only' },
+  { name: 'handoff-package', permission: 'local-only' },
   { name: 'integration-plan', permission: 'read-only' },
   { name: 'overview', permission: 'read-only' },
   { name: 'policy-check', permission: 'local-only' },

@@ -26,6 +26,7 @@ vcopy projects
 vcopy env-template <project>
 vcopy env-push <project>
 vcopy env-rm <project>
+vcopy handoff-package --report <report.json> --out-dir <directory>
 vcopy report --from <source-project> --to <target-project>
 vcopy overview
 vcopy policy-check --report <analysis.json> --policy <policy.json>
@@ -325,4 +326,10 @@ Store audit-history copies of generated reports:
 
 ```bash
 node src/cli.mjs audit-save --report ./ci.json --out-dir ./.vcopy/audit
+```
+
+Create a local handoff package:
+
+```bash
+node src/cli.mjs handoff-package --report ./analysis.json --out-dir ./handoff
 ```

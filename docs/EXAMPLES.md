@@ -38,6 +38,12 @@ Save an audit-history copy:
 node src/cli.mjs audit-save --report ./ci.json --out-dir ./.vcopy/audit
 ```
 
+Create a local handoff package:
+
+```bash
+node src/cli.mjs handoff-package --report ./analysis.json --out-dir ./handoff
+```
+
 Preview a duplicate operation:
 
 ```bash

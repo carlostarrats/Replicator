@@ -8,7 +8,7 @@ export async function createViewer(options) {
   return `Viewer saved to ${out}\n`;
 }
 
-function renderViewerHtml() {
+export function renderViewerHtml() {
   return `<!doctype html>
 <html lang="en">
 <head>

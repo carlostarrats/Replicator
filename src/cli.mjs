@@ -15,6 +15,7 @@ import { duplicateProject } from './commands/duplicate.mjs';
 import { pushEnv } from './commands/env-push.mjs';
 import { removeEnv } from './commands/env-rm.mjs';
 import { createEnvTemplate } from './commands/env-template.mjs';
+import { createHandoffPackage } from './commands/handoff-package.mjs';
 import { createIntegrationPlan } from './commands/integration-plan.mjs';
 import { listVercelProjects } from './commands/projects.mjs';
 import { syncProtection } from './commands/protection-sync.mjs';
@@ -143,6 +144,12 @@ async function main(argv) {
 
   if (command === 'audit-save') {
     const output = await saveAuditReport(options);
+    await writeCommandOutput(output, options);
+    return EXIT_CODES.ok;
+  }
+
+  if (command === 'handoff-package') {
+    const output = await createHandoffPackage(options);
     await writeCommandOutput(output, options);
     return EXIT_CODES.ok;
   }
@@ -533,7 +540,7 @@ async function parseArgs(command, args) {
     options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
-  const localOnlyCommands = new Set(['audit-save', 'policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
+  const localOnlyCommands = new Set(['audit-save', 'handoff-package', 'policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -594,6 +601,10 @@ async function parseArgs(command, args) {
 
   if (command === 'audit-save' && (!options.reportFile || !options.outDir)) {
     throw new CliError('Usage: vcopy audit-save --report <report.json> --out-dir <directory>', 1);
+  }
+
+  if (command === 'handoff-package' && (!options.reportFile || !options.outDir)) {
+    throw new CliError('Usage: vcopy handoff-package --report <report.json> --out-dir <directory>', 1);
   }
 
   return options;
@@ -727,6 +738,7 @@ Usage:
   vcopy env-template <project>
   vcopy env-push <project>
   vcopy env-rm <project>
+  vcopy handoff-package --report <report.json> --out-dir <directory>
   vcopy report --from <source-project> --to <target-project>
   vcopy overview
   vcopy policy-check --report <analysis.json> --policy <policy.json>
