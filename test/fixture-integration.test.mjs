@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('fixture integration flow produces analysis ci template and viewer artifacts', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-flow-'));
 
   try {

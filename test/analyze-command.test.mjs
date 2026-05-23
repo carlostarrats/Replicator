@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('analyze writes a safe Markdown report with env names and scopes only', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-'));
   const out = join(dir, 'vcopy-report.md');
 
@@ -62,7 +62,7 @@ test('analyze exits clearly when no token is configured', async () => {
 });
 
 test('analyze can use a local Vercel CLI auth token when VERCEL_TOKEN is absent', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-auth-'));
   const authFile = join(dir, 'auth.json');
   const out = join(dir, 'report.md');
@@ -92,7 +92,7 @@ test('analyze can use a local Vercel CLI auth token when VERCEL_TOKEN is absent'
 });
 
 test('analyze can read team scope from local .vercel project metadata', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-vercel-meta-'));
   const out = join(dir, 'report.md');
 
@@ -125,7 +125,7 @@ test('analyze can read team scope from local .vercel project metadata', async ()
 });
 
 test('analyze exits clearly when project selection is invalid', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli(['analyze', '--api-base', api.apiBase], {
@@ -140,7 +140,7 @@ test('analyze exits clearly when project selection is invalid', async () => {
 });
 
 test('analyze lists projects and uses the selected source when no project is passed', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-'));
   const out = join(dir, 'vcopy-report.md');
 
@@ -170,7 +170,7 @@ test('analyze lists projects and uses the selected source when no project is pas
 
 
 test('analyze scans source code for env vars missing from Vercel', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-code-'));
   const appDir = join(dir, 'apps', 'web');
   const out = join(dir, 'report.md');
@@ -208,7 +208,7 @@ test('analyze scans source code for env vars missing from Vercel', async () => {
 });
 
 test('analyze reports cron jobs and rewrites from vercel config', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-config-'));
   const out = join(dir, 'report.md');
 
@@ -247,7 +247,7 @@ test('analyze reports cron jobs and rewrites from vercel config', async () => {
 });
 
 test('analyze retries once when the Vercel API rate limits a request', async () => {
-  const api = await startLocalVercelApiSimulator({ rateLimitProjectOnce: true });
+  const api = await startLocalVercelApiTestServer({ rateLimitProjectOnce: true });
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-rate-'));
   const out = join(dir, 'report.md');
 
@@ -274,7 +274,7 @@ test('analyze retries once when the Vercel API rate limits a request', async () 
 });
 
 test('analyze can export JSON for automation', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-json-'));
   const out = join(dir, 'analysis.json');
 
@@ -309,7 +309,7 @@ test('analyze can export JSON for automation', async () => {
 });
 
 test('analyze reports likely services from environment variable names', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-services-'));
   const out = join(dir, 'report.md');
 

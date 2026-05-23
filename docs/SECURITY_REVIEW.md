@@ -11,7 +11,7 @@
 
 - Confirm writes require `--test-project-only --apply --yes`.
 - Confirm project writes refuse names that do not start with `vcopy-test-`.
-- Confirm domain tests use local API simulators or disposable test domains only.
+- Confirm domain tests use local API test servers or disposable test domains only.
 - Confirm `routing-sync` writes only local fixture files.
 
 ## Release review

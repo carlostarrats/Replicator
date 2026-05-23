@@ -3,7 +3,7 @@
 
 # Vercel Config Manager
 
-Vercel Config Manager (`vcopy`) is a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes.
+Vercel Config Manager (`vcopy`) is a Node.js CLI for inspecting, comparing, documenting, and safely preparing Vercel project configuration changes. It is designed for real Vercel projects and real project configuration files.
 
 It is built for teams that manage multiple related Vercel projects and need a repeatable way to answer questions like:
 
@@ -17,7 +17,7 @@ The CLI reads project metadata and environment variable names/scopes. It does no
 
 ## Overview
 
-`vcopy` combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded write workflows. It can be used interactively during a migration or in CI to detect readiness blockers and configuration drift.
+`vcopy` combines Vercel API reads, local source/config scanning, JSON/Markdown reports, local policy checks, and guarded change workflows. It can be used interactively during a migration or in CI to detect readiness blockers and configuration drift.
 
 Key outputs include:
 
@@ -41,7 +41,7 @@ Key outputs include:
 - Evaluates local policy files for required env keys, forbidden public keys, required domains, required project settings, forbidden project settings, and blocked env targets.
 - Stores local snapshots and audit-history report copies.
 - Generates local handoff packages and a static report viewer.
-- Provides guarded write commands for test-scoped targets and local fixture files.
+- Prepares guarded change workflows for project configuration, environment variable migration, routing updates, deployment protection, and migration handoff.
 
 ## Safety model
 
@@ -55,7 +55,7 @@ The project is intentionally conservative:
 - Guarded project writes refuse targets that do not start with `vcopy-test-` unless the local config changes the test prefix.
 - Real project mutation is disabled by default; see `docs/REAL_PROJECT_POLICY.md`.
 
-The local dogfood workflow uses a local Vercel API simulator so contributors can exercise the full flow without touching real Vercel projects.
+Automated tests and the local dogfood workflow use local files and a local Vercel API test server so development can verify behavior without touching real projects, domains, or secrets.
 
 ## Install
 
@@ -80,7 +80,7 @@ Run the safe local workflow:
 npm run dogfood -- --out-dir ./.vcopy/dogfood
 ```
 
-This writes local reports, a policy result, a snapshot, a CI report, a template, a template plan, a handoff package, and a local viewer. It uses local simulated Vercel API responses and does not call real Vercel projects.
+This writes local reports, a policy result, a snapshot, a CI report, a template, a template plan, a handoff package, and a local viewer. It uses a local Vercel API test server and does not call real Vercel projects.
 
 For a real read-only project analysis:
 
@@ -246,7 +246,7 @@ Configure `VERCEL_TOKEN` as a repository secret before enabling workflows that r
 npm test
 ```
 
-The test suite uses local files and a local Vercel API simulator. It does not require real Vercel projects.
+The test suite uses local files and a local Vercel API test server. It does not require real Vercel projects.
 
 ## Exit codes
 
@@ -260,7 +260,7 @@ The test suite uses local files and a local Vercel API simulator. It does not re
 
 - `read-only`: reads Vercel or local files and writes only reports.
 - `local-only`: does not require Vercel auth or Vercel API access.
-- `test-write`: can mutate only test-scoped projects or local test files and requires explicit apply flags.
+- `test-write`: can mutate only `vcopy-test-*` protected projects or local test files and requires explicit apply flags.
 
 ## Documentation
 

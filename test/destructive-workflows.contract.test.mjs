@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import { runCli } from './helpers/cli.mjs';
-import { startDestructiveLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startDestructiveLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 const FIXTURE_DIR = 'test/fixtures/destructive-workflows';
 const FIXTURES = [
   'bulk-secret-migration.json',
@@ -24,10 +24,10 @@ test('destructive workflow fixtures are scoped to test projects or test files', 
     assert.ok(fixture.expectedSafety.length > 0, `${file} needs safety expectations`);
 
     if (fixture.sourceProject) {
-      assert.match(fixture.sourceProject, /^vcopy-test-/, `${file} source project must be test-scoped`);
+      assert.match(fixture.sourceProject, /^vcopy-test-/, `${file} source project must use the protected test prefix`);
     }
     if (fixture.targetProject) {
-      assert.match(fixture.targetProject, /^vcopy-test-/, `${file} target project must be test-scoped`);
+      assert.match(fixture.targetProject, /^vcopy-test-/, `${file} target project must use the protected test prefix`);
     }
 
     const joinedApply = fixture.applyCommand.join(' ');
@@ -48,7 +48,7 @@ test('destructive workflow dry runs do not include apply flags', async () => {
 });
 
 test('bulk secret migration writes only selected keys to vcopy-test targets', async () => {
-  const api = await startDestructiveLocalVercelApiSimulator();
+  const api = await startDestructiveLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-secrets-'));
   const envFile = join(dir, '.env');
 
@@ -138,7 +138,7 @@ test('secret migration dry-run uses standardized output sections', async () => {
 });
 
 test('domain move refuses real projects and moves only vcopy-test domains', async () => {
-  const api = await startDestructiveLocalVercelApiSimulator();
+  const api = await startDestructiveLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -183,7 +183,7 @@ test('domain move refuses real projects and moves only vcopy-test domains', asyn
 });
 
 test('integration credential migration emits manual checklist without copying credentials', async () => {
-  const api = await startDestructiveLocalVercelApiSimulator();
+  const api = await startDestructiveLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -209,7 +209,7 @@ test('integration credential migration emits manual checklist without copying cr
 });
 
 test('deployment protection sync excludes bypass secrets and requires test-project-only apply', async () => {
-  const api = await startDestructiveLocalVercelApiSimulator();
+  const api = await startDestructiveLocalVercelApiTestServer();
 
   try {
     const result = await runCli([

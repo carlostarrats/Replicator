@@ -137,7 +137,7 @@ Preview a local plan from that template:
 node src/cli.mjs template-plan --template ./brand-a-template.json --to brand-c-web
 ```
 
-Apply a template to a test-scoped project:
+Apply a template to a `vcopy-test-*` protected project:
 
 ```bash
 node src/cli.mjs template-apply --template ./brand-a-template.json --to vcopy-test-brand-c --test-project-only --apply --yes

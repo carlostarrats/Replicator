@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('loads defaults from .vcopyrc.json', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-config-'));
@@ -29,8 +29,8 @@ test('loads defaults from .vcopyrc.json', async () => {
   }
 });
 
-test('uses config team scope for local API simulator requests', async () => {
-  const api = await startLocalVercelApiSimulator();
+test('uses config team scope for local API test server requests', async () => {
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-config-team-'));
 
   try {

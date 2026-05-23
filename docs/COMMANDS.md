@@ -76,7 +76,7 @@ Writes: stdout or report file only.
 
 Permission: test-write
 
-Purpose: Move a test domain between test-scoped projects.
+Purpose: Move a test domain between `vcopy-test-*` protected projects.
 
 Example:
 
@@ -84,7 +84,7 @@ Example:
 node src/cli.mjs domain-move --from vcopy-test-source --to vcopy-test-target --domain vcopy-test.example.com --test-project-only --apply --yes
 ```
 
-Writes: test-scoped Vercel domain changes only.
+Writes: `vcopy-test-*` protected Vercel domain changes only.
 
 ## vcopy duplicate
 
@@ -104,7 +104,7 @@ Writes: project creation only when `--apply --yes` is used.
 
 Permission: test-write
 
-Purpose: Push selected local env values to test-scoped projects after review.
+Purpose: Push selected local env values to `vcopy-test-*` protected projects after review.
 
 Example:
 
@@ -118,7 +118,7 @@ Writes: selected env values only when `--apply --yes` is used.
 
 Permission: test-write
 
-Purpose: Remove selected env entries from test-scoped projects after review.
+Purpose: Remove selected env entries from `vcopy-test-*` protected projects after review.
 
 Example:
 
@@ -216,7 +216,7 @@ Writes: stdout or report file only.
 
 Permission: test-write
 
-Purpose: Sync deployment protection settings between test-scoped projects.
+Purpose: Sync deployment protection settings between `vcopy-test-*` protected projects.
 
 Example:
 
@@ -224,7 +224,7 @@ Example:
 node src/cli.mjs protection-sync --from vcopy-test-source --to vcopy-test-target --test-project-only --apply --yes
 ```
 
-Writes: test-scoped project settings only.
+Writes: `vcopy-test-*` protected project settings only.
 
 ## vcopy refactor-env
 
@@ -272,7 +272,7 @@ Writes: local target config file only when `--apply --yes` is used.
 
 Permission: test-write
 
-Purpose: Migrate selected local env values to a test-scoped target.
+Purpose: Migrate selected local env values to a `vcopy-test-*` protected target.
 
 Example:
 
@@ -342,7 +342,7 @@ Writes: local template file only.
 
 Permission: test-write
 
-Purpose: Apply a template to a test-scoped project and print env placeholders.
+Purpose: Apply a template to a `vcopy-test-*` protected project and print env placeholders.
 
 Example:
 
@@ -350,7 +350,7 @@ Example:
 node src/cli.mjs template-apply --template ./template.json --to vcopy-test-target --test-project-only --apply --yes
 ```
 
-Writes: test-scoped project creation only.
+Writes: `vcopy-test-*` protected project creation only.
 
 ## vcopy template-plan
 

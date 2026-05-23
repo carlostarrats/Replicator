@@ -52,7 +52,7 @@ test('start here guide walks through the safe local workflow', async () => {
 
   assert.match(docs, /Start Here/);
   assert.match(docs, /npm run dogfood/);
-  assert.match(docs, /local Vercel API simulator/i);
+  assert.match(docs, /local Vercel API test server/i);
   assert.match(docs, /vcopy-test-/);
   assert.match(docs, /handoff/);
 });
@@ -64,7 +64,10 @@ test('readme is public-ready and avoids test-harness wording', async () => {
   assert.match(docs, /## What it does/);
   assert.match(docs, /## Safety model/);
   assert.match(docs, /## License/);
+  assert.match(docs, /designed for real Vercel projects/i);
+  assert.match(docs, /local Vercel API test server/i);
   assert.doesNotMatch(docs, /\bfake\b/i);
+  assert.doesNotMatch(docs, /simulat/i);
 });
 
 test('repository has an open source license', async () => {

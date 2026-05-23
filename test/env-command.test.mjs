@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('env-template exports env names without secret values', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-template-'));
   const out = join(dir, '.env.example');
 
@@ -36,7 +36,7 @@ test('env-template exports env names without secret values', async () => {
 });
 
 test('template exports reusable project config without secret values', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-'));
   const out = join(dir, 'template.json');
 
@@ -190,7 +190,7 @@ test('template file validation reports invalid fields clearly', async () => {
 
 
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-push-'));
   const envFile = join(dir, '.env');
 
@@ -229,7 +229,7 @@ test('env-push dry-run previews selected local env values without printing secre
 });
 
 test('env-push apply writes selected local env values only with explicit confirmation', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-apply-'));
   const envFile = join(dir, '.env');
 
@@ -268,7 +268,7 @@ test('env-push apply writes selected local env values only with explicit confirm
 });
 
 test('env-rm dry-run previews matching env vars without deleting', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -295,7 +295,7 @@ test('env-rm dry-run previews matching env vars without deleting', async () => {
 });
 
 test('env-rm apply deletes matching env vars only with explicit confirmation', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -322,7 +322,7 @@ test('env-rm apply deletes matching env vars only with explicit confirmation', a
 });
 
 test('env-rm refuses to delete one target from a multi-target env entry', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([

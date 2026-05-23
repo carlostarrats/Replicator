@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('teams lists available Vercel teams', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -29,7 +29,7 @@ test('teams lists available Vercel teams', async () => {
 });
 
 test('projects lists available Vercel projects', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -50,7 +50,7 @@ test('projects lists available Vercel projects', async () => {
 });
 
 test('diff compares build settings and environment variable scopes', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -81,7 +81,7 @@ test('diff compares build settings and environment variable scopes', async () =>
 });
 
 test('diff can export JSON drift data', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-diff-json-'));
   const out = join(dir, 'diff.json');
 
@@ -114,7 +114,7 @@ test('diff can export JSON drift data', async () => {
 });
 
 test('diff can fail the process when drift is detected', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -137,7 +137,7 @@ test('diff can fail the process when drift is detected', async () => {
 });
 
 test('report combines analysis readiness duplicate plan and diff', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-report-'));
   const out = join(dir, 'migration.md');
 
@@ -173,7 +173,7 @@ test('report combines analysis readiness duplicate plan and diff', async () => {
 });
 
 test('ci reports readiness and drift with a failing automation exit code', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -199,7 +199,7 @@ test('ci reports readiness and drift with a failing automation exit code', async
 });
 
 test('ci can export schema-versioned JSON', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-ci-json-'));
   const out = join(dir, 'ci.json');
 
@@ -232,7 +232,7 @@ test('ci can export schema-versioned JSON', async () => {
 });
 
 test('check reports practical readiness and blocked environment gaps', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -258,7 +258,7 @@ test('check reports practical readiness and blocked environment gaps', async () 
 });
 
 test('check can fail the process when readiness has blockers', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -280,7 +280,7 @@ test('check can fail the process when readiness has blockers', async () => {
 
 
 test('refactor-env recommends shared and project-specific variables across projects', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -305,7 +305,7 @@ test('refactor-env recommends shared and project-specific variables across proje
 });
 
 test('refactor-env can analyze an explicit project list', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -327,7 +327,7 @@ test('refactor-env can analyze an explicit project list', async () => {
 });
 
 test('overview groups related projects and surfaces variant drift', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -351,7 +351,7 @@ test('overview groups related projects and surfaces variant drift', async () => 
 });
 
 test('overview can fail automation when grouped variants drift', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -371,7 +371,7 @@ test('overview can fail automation when grouped variants drift', async () => {
 });
 
 test('overview can export schema-versioned JSON', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-overview-json-'));
   const out = join(dir, 'overview.json');
 
@@ -400,7 +400,7 @@ test('overview can export schema-versioned JSON', async () => {
 });
 
 test('verify classifies failed deployment logs into config fixes', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -423,7 +423,7 @@ test('verify classifies failed deployment logs into config fixes', async () => {
 });
 
 test('verify can export JSON deployment classification', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-verify-json-'));
   const out = join(dir, 'verify.json');
 
@@ -501,7 +501,7 @@ test('verify falls back when a deployments API version is unavailable', async ()
 });
 
 test('check can export its readiness report to Markdown', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-check-'));
   const out = join(dir, 'check.md');
 
@@ -529,7 +529,7 @@ test('check can export its readiness report to Markdown', async () => {
 });
 
 test('check can export JSON readiness data', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-check-json-'));
   const out = join(dir, 'check.json');
 
@@ -560,7 +560,7 @@ test('check can export JSON readiness data', async () => {
 });
 
 test('check uses code scanning to flag env vars missing from Vercel', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-check-code-'));
   const appDir = join(dir, 'app');
 

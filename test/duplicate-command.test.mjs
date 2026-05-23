@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
 test('duplicate dry-run prints a safe copy plan without mutating projects', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-duplicate-'));
 
   try {
@@ -50,7 +50,7 @@ test('duplicate dry-run prints a safe copy plan without mutating projects', asyn
 });
 
 test('duplicate dry-run can export JSON copy plan', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-duplicate-json-'));
   const out = join(dir, 'duplicate.json');
 
@@ -84,7 +84,7 @@ test('duplicate dry-run can export JSON copy plan', async () => {
 });
 
 test('duplicate apply creates a project and leaves secret values for manual entry', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
 
   try {
     const result = await runCli([
@@ -123,7 +123,7 @@ test('duplicate apply creates a project and leaves secret values for manual entr
 });
 
 test('duplicate apply JSON output sanitizes created project metadata', async () => {
-  const api = await startLocalVercelApiSimulator();
+  const api = await startLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-apply-json-'));
   const out = join(dir, 'created.json');
 

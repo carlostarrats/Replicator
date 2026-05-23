@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { runCli } from './helpers/cli.mjs';
-import { startDestructiveLocalVercelApiSimulator } from './helpers/local-vercel-api-simulator.mjs';
+import { startDestructiveLocalVercelApiTestServer } from './helpers/local-vercel-api-test-server.mjs';
 
-test('template-apply creates only vcopy-test projects through local API simulator', async () => {
-  const api = await startDestructiveLocalVercelApiSimulator();
+test('template-apply creates only vcopy-test projects through local API test server', async () => {
+  const api = await startDestructiveLocalVercelApiTestServer();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-apply-'));
 
   try {

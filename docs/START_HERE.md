@@ -15,7 +15,7 @@ node src/cli.mjs --version
 npm run dogfood -- --out-dir ./.vcopy/dogfood
 ```
 
-The dogfood workflow starts a local Vercel API simulator on localhost and writes local artifacts only. It does not call real Vercel projects, domains, or credentials.
+The dogfood workflow starts a local Vercel API test server on localhost and writes local artifacts only. It does not call real Vercel projects, domains, or credentials.
 
 Generated artifacts:
 
