@@ -1,11 +1,11 @@
 import { strict as assert } from 'node:assert';
-import { spawn } from 'node:child_process';
-import { createServer } from 'node:http';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { runCli } from './helpers/cli.mjs';
+import { startDestructiveFakeApi } from './helpers/fake-vercel-api.mjs';
 const FIXTURE_DIR = 'test/fixtures/destructive-workflows';
 const FIXTURES = [
   'bulk-secret-migration.json',
@@ -258,124 +258,4 @@ test('cron and rewrite sync mutates only test fixture config files', async () =>
 
 async function readFixture(file) {
   return JSON.parse(await readFile(join(FIXTURE_DIR, file), 'utf8'));
-}
-
-function runCli(args, env = {}) {
-  return new Promise((resolve) => {
-    const child = spawn(process.execPath, ['src/cli.mjs', ...args], {
-      cwd: process.cwd(),
-      env: { ...process.env, VERCEL_AUTH_FILE: '', ...env },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    let stdout = '';
-    let stderr = '';
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk;
-    });
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk;
-    });
-    child.on('close', (code) => {
-      resolve({ code, stdout, stderr });
-    });
-  });
-}
-
-async function startDestructiveFakeApi() {
-  const requests = [];
-  const server = createServer((request, response) => {
-    let body = '';
-    request.on('data', (chunk) => {
-      body += chunk;
-    });
-    request.on('end', () => {
-      const parsedBody = body ? JSON.parse(body) : undefined;
-      requests.push({
-        method: request.method,
-        url: request.url,
-        body: parsedBody,
-      });
-      handleRequest(request, response, parsedBody);
-    });
-  });
-
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  const address = server.address();
-  return {
-    apiBase: `http://127.0.0.1:${address.port}`,
-    requests,
-    close: () => new Promise((resolve) => server.close(resolve)),
-  };
-}
-
-function handleRequest(request, response, body) {
-  const url = new URL(request.url, 'http://localhost');
-  response.setHeader('content-type', 'application/json');
-
-  if (request.method === 'GET' && url.pathname === '/v9/projects/vcopy-test-source') {
-    response.end(JSON.stringify({
-      name: 'vcopy-test-source',
-      gitForkProtection: true,
-      ssoProtection: 'standard',
-      autoExposeSystemEnvs: false,
-      bypassSecret: 'do-not-copy',
-    }));
-    return;
-  }
-
-  if (request.method === 'GET' && url.pathname === '/v9/projects/vcopy-test-target') {
-    response.end(JSON.stringify({
-      name: 'vcopy-test-target',
-      gitForkProtection: false,
-      ssoProtection: null,
-      autoExposeSystemEnvs: true,
-    }));
-    return;
-  }
-
-  if (request.method === 'GET' && url.pathname === '/v9/projects/vcopy-test-source/env') {
-    response.end(JSON.stringify({
-      envs: [
-        { key: 'DATABASE_URL', target: ['preview'], type: 'encrypted', value: 'encrypted-payload' },
-        { key: 'BLOB_READ_WRITE_TOKEN', target: ['production'], type: 'encrypted', value: 'encrypted-payload' },
-      ],
-    }));
-    return;
-  }
-
-  if (request.method === 'GET' && url.pathname === '/v9/projects/vcopy-test-target/env') {
-    response.end(JSON.stringify({ envs: [] }));
-    return;
-  }
-
-  if (request.method === 'GET' && url.pathname.endsWith('/domains')) {
-    response.end(JSON.stringify({ domains: [{ name: 'vcopy-test.example.com', verified: true }] }));
-    return;
-  }
-
-  if (request.method === 'POST' && url.pathname === '/v9/projects/vcopy-test-target/env') {
-    response.statusCode = 201;
-    response.end(JSON.stringify({ created: true, key: body.key }));
-    return;
-  }
-
-  if (request.method === 'DELETE' && url.pathname === '/v9/projects/vcopy-test-source/domains/vcopy-test.example.com') {
-    response.end(JSON.stringify({ removed: true }));
-    return;
-  }
-
-  if (request.method === 'POST' && url.pathname === '/v10/projects/vcopy-test-target/domains') {
-    response.statusCode = 201;
-    response.end(JSON.stringify({ name: body.name }));
-    return;
-  }
-
-  if (request.method === 'PATCH' && url.pathname === '/v9/projects/vcopy-test-target') {
-    response.end(JSON.stringify({ updated: true }));
-    return;
-  }
-
-  response.statusCode = 404;
-  response.end(JSON.stringify({ error: { message: 'not found' } }));
 }
