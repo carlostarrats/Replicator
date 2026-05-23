@@ -80,6 +80,12 @@ Export a reusable project config template:
 node src/cli.mjs template brand-a-web --out ./brand-a-template.json
 ```
 
+Preview a local plan from that template:
+
+```bash
+node src/cli.mjs template-plan --template ./brand-a-template.json --to brand-c-web
+```
+
 Push a selected local env value:
 
 ```bash

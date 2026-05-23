@@ -1178,6 +1178,52 @@ test('template exports reusable project config without secret values', async () 
   }
 });
 
+test('template-plan previews a local template without Vercel auth or mutations', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-plan-'));
+  const templatePath = join(dir, 'template.json');
+
+  try {
+    await writeFile(templatePath, JSON.stringify({
+      kind: 'vercel-project-template',
+      version: 1,
+      sourceProject: 'brand-a-web',
+      project: {
+        framework: 'nextjs',
+        rootDirectory: 'apps/web',
+        installCommand: 'pnpm install',
+        buildCommand: 'pnpm build',
+        outputDirectory: '.next',
+      },
+      env: [
+        { key: 'DATABASE_URL', target: ['preview', 'production'], type: 'encrypted' },
+        { key: 'NEXT_PUBLIC_APP_URL', target: ['preview', 'production'], type: 'plain' },
+      ],
+      manualReview: [
+        'Domains are not included and must be reviewed manually.',
+      ],
+    }));
+
+    const result = await runCli([
+      'template-plan',
+      '--template',
+      templatePath,
+      '--to',
+      'brand-c-web',
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Template plan for brand-c-web/);
+    assert.match(result.stdout, /Source template: brand-a-web/);
+    assert.match(result.stdout, /framework: nextjs/);
+    assert.match(result.stdout, /DATABASE_URL - preview, production/);
+    assert.match(result.stdout, /This command does not call Vercel or create projects/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
   const api = await startFakeVercelApi();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-push-'));

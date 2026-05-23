@@ -15,6 +15,7 @@ import { refactorEnv } from './commands/refactor-env.mjs';
 import { createMigrationReport } from './commands/report.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
 import { createProjectTemplate } from './commands/template.mjs';
+import { createTemplatePlan } from './commands/template-plan.mjs';
 import { verifyProject } from './commands/verify.mjs';
 import { createOverview } from './commands/overview.mjs';
 import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
@@ -29,7 +30,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template'].includes(command)) {
+  if (!['analyze', 'check', 'ci', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview', 'template', 'template-plan'].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -116,6 +117,12 @@ async function main(argv) {
 
   if (command === 'template') {
     const output = await createProjectTemplate(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'template-plan') {
+    const output = await createTemplatePlan(options);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -217,6 +224,7 @@ async function parseArgs(command, args) {
     keys: undefined,
     key: undefined,
     target: undefined,
+    templateFile: undefined,
     apiBase: process.env.VCOPY_API_BASE || 'https://api.vercel.com',
     out: command === 'analyze' ? './vcopy-report.md' : undefined,
     codeRoot: undefined,
@@ -306,6 +314,12 @@ async function parseArgs(command, args) {
       continue;
     }
 
+    if (arg === '--template') {
+      options.templateFile = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
     if (arg === '--to') {
       options.toProject = requireValue(args, index, arg);
       index += 1;
@@ -360,8 +374,10 @@ async function parseArgs(command, args) {
     options.project = arg;
   }
 
-  options.token = await resolveToken(options.token);
-  if (!options.token) {
+  const localOnlyCommands = new Set(['template-plan']);
+
+  options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
+  if (!localOnlyCommands.has(command) && !options.token) {
     throw new CliError('Missing Vercel token. Set VERCEL_TOKEN, pass --token, or run `vercel login`.', 1);
   }
   if (!options.teamId) {
@@ -391,6 +407,10 @@ async function parseArgs(command, args) {
 
   if (command === 'verify' && !options.project) {
     throw new CliError('Usage: vcopy verify <project>', 1);
+  }
+
+  if (command === 'template-plan' && (!options.templateFile || !options.toProject)) {
+    throw new CliError('Usage: vcopy template-plan --template <template.json> --to <target-project>', 1);
   }
 
   return options;
@@ -519,6 +539,7 @@ Usage:
   vcopy report --from <source-project> --to <target-project>
   vcopy overview
   vcopy template <project>
+  vcopy template-plan --template <template.json> --to <target-project>
 
 Options:
   --api-base <url>   Override the Vercel API base URL.
@@ -532,6 +553,7 @@ Options:
   --keys <list>      Comma-separated env keys for env-push.
   --key <key>        Env key for env-rm.
   --target <target>  Vercel env target for env-push.
+  --template <path>  Template JSON file for template-plan.
   --team-id <id>     Vercel team ID for scoped projects.
   --token <token>    Vercel bearer token. Prefer VERCEL_TOKEN.
 `);
