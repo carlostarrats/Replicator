@@ -21,19 +21,23 @@ export async function migrateSecrets(options) {
     return renderSecretMigration('Secret migration plan', entries);
   }
 
-  for (const entry of entries) {
-    await createProjectEnv({
-      apiBase: options.apiBase,
-      token: options.token,
-      teamId: options.teamId,
-      idOrName: options.toProject,
-      env: {
-        key: entry.key,
-        value: entry.value,
-        target: [entry.target],
-        type: 'encrypted',
-      },
-    });
+  try {
+    for (const entry of entries) {
+      await createProjectEnv({
+        apiBase: options.apiBase,
+        token: options.token,
+        teamId: options.teamId,
+        idOrName: options.toProject,
+        env: {
+          key: entry.key,
+          value: entry.value,
+          target: [entry.target],
+          type: 'encrypted',
+        },
+      });
+    }
+  } catch (error) {
+    throw new Error(`Secret migration failed before completion. Review target env values for manual recovery. ${error.message}`);
   }
 
   return renderSecretMigration('Secret migration completed', entries);

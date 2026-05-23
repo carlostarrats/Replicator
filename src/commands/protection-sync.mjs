@@ -23,13 +23,17 @@ export async function syncProtection(options) {
     return renderProtection('Deployment protection sync plan', patch);
   }
 
-  await updateProject({
-    apiBase: options.apiBase,
-    token: options.token,
-    teamId: options.teamId,
-    idOrName: options.toProject,
-    project: patch,
-  });
+  try {
+    await updateProject({
+      apiBase: options.apiBase,
+      token: options.token,
+      teamId: options.teamId,
+      idOrName: options.toProject,
+      project: patch,
+    });
+  } catch (error) {
+    throw new Error(`Deployment protection sync failed before completion. No changes were made after the failed request; review settings manually for recovery. ${error.message}`);
+  }
 
   return renderProtection('Deployment protection synced', patch);
 }
