@@ -37,6 +37,7 @@ vcopy viewer [--out ./vcopy-viewer.html]
 ```
 
 See `docs/COMMANDS.md` for the full command reference.
+See `docs/INSTALL.md` for local install and development setup.
 
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
 

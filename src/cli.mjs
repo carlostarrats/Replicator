@@ -47,6 +47,12 @@ async function main(argv) {
     return 0;
   }
 
+  if (command === '--version' || command === '-v') {
+    const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+    process.stdout.write(`${pkg.version}\n`);
+    return 0;
+  }
+
   if (!isKnownCommand(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
