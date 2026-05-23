@@ -20,11 +20,13 @@
 - Create dry-run duplicate plans.
 - Create new duplicate projects with safe build settings.
 - Export env templates without values.
+- Push explicitly selected local `.env` values to Vercel with dry-run/apply guards.
 - Suggest shared env/refactor candidates.
+- Generate combined migration handoff reports.
 
 ## Not Yet Implemented
 
-- Writing real env variables.
+- Bulk or automatic secret migration.
 - Moving domains.
 - Migrating integration credentials.
 - Full deployment protection policy mutation.

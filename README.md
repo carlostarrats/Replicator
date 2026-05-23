@@ -15,6 +15,10 @@ vcopy refactor-env
 vcopy teams
 vcopy projects
 vcopy env-template <project>
+vcopy env-push <project>
+vcopy env-rm <project>
+vcopy report --from <source-project> --to <target-project>
+vcopy overview
 ```
 
 The CLI reads project metadata and environment variable names/scopes only. It does not read or copy secret contents, transfer domains, or migrate integration credentials.
@@ -95,6 +99,18 @@ Compare projects:
 VERCEL_TOKEN=your_token node src/cli.mjs diff brand-a-web brand-b-web
 ```
 
+Fail CI when project drift is detected:
+
+```bash
+node src/cli.mjs diff brand-a-web brand-b-web --fail-on-drift
+```
+
+Create a combined migration handoff report:
+
+```bash
+node src/cli.mjs report --from brand-a-web --to brand-b-web --code-root /path/to/repo --out ./migration.md
+```
+
 Inspect the latest deployment and classify common config failures:
 
 ```bash
@@ -108,10 +124,31 @@ VERCEL_TOKEN=your_token node src/cli.mjs refactor-env
 VERCEL_TOKEN=your_token node src/cli.mjs refactor-env --projects brand-a-web,brand-b-web
 ```
 
+Create a team-level overview that groups related variants and highlights drift:
+
+```bash
+node src/cli.mjs overview
+node src/cli.mjs overview --projects brand-a-web,brand-b-web --format json --out ./overview.json
+```
+
 Export an env template without secret values:
 
 ```bash
 node src/cli.mjs env-template brand-a-web --out ./.env.example
+```
+
+Push selected values from a local `.env` after an explicit dry run:
+
+```bash
+node src/cli.mjs env-push brand-b-web --env-file ./.env --keys DATABASE_URL --target preview --dry-run
+node src/cli.mjs env-push brand-b-web --env-file ./.env --keys DATABASE_URL --target preview --apply --yes
+```
+
+Remove selected env values with the same dry-run/apply guard:
+
+```bash
+node src/cli.mjs env-rm brand-b-web --key DATABASE_URL --target preview --dry-run
+node src/cli.mjs env-rm brand-b-web --key DATABASE_URL --target preview --apply --yes
 ```
 
 Choose the report path:

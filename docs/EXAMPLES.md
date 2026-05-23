@@ -42,8 +42,41 @@ Compare projects:
 node src/cli.mjs diff brand-a-web brand-b-web
 ```
 
+Fail automation when drift is detected:
+
+```bash
+node src/cli.mjs diff brand-a-web brand-b-web --fail-on-drift
+```
+
+Create a migration handoff report:
+
+```bash
+node src/cli.mjs report --from brand-a-web --to brand-b-web --code-root ./apps/web --out ./migration.md
+```
+
+Create a team-level overview:
+
+```bash
+node src/cli.mjs overview
+node src/cli.mjs overview --projects brand-a-web,brand-b-web --format json --out ./overview.json
+```
+
 Export env names without values:
 
 ```bash
 node src/cli.mjs env-template brand-a-web --out ./.env.example
+```
+
+Push a selected local env value:
+
+```bash
+node src/cli.mjs env-push brand-b-web --env-file ./.env --keys DATABASE_URL --target preview --dry-run
+node src/cli.mjs env-push brand-b-web --env-file ./.env --keys DATABASE_URL --target preview --apply --yes
+```
+
+Remove a selected env value:
+
+```bash
+node src/cli.mjs env-rm brand-b-web --key DATABASE_URL --target preview --dry-run
+node src/cli.mjs env-rm brand-b-web --key DATABASE_URL --target preview --apply --yes
 ```

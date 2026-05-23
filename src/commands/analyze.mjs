@@ -1,5 +1,6 @@
 import { classifyLikelyServices } from '../analysis/classify-services.mjs';
 import { readVercelConfig } from '../analysis/read-vercel-config.mjs';
+import { sanitizeDomain, sanitizeEnv, sanitizeProject } from '../analysis/sanitize.mjs';
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
 import { scanCodeEnvReferences } from '../analysis/scan-code-env.mjs';
 import { renderAnalysisReport } from '../output/markdown.mjs';
@@ -22,6 +23,13 @@ export async function analyzeProject(options) {
     vercelConfig,
     likelyServices,
     markdown: renderAnalysisReport({ project, envs, domains, codeEnvRefs, vercelConfig, likelyServices }),
-    json: JSON.stringify({ project, envs, domains, codeEnvRefs, vercelConfig, likelyServices }, null, 2),
+    json: JSON.stringify({
+      project: sanitizeProject(project),
+      envs: envs.map(sanitizeEnv),
+      domains: domains.map(sanitizeDomain),
+      codeEnvRefs,
+      vercelConfig,
+      likelyServices,
+    }, null, 2),
   };
 }

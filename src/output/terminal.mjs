@@ -141,11 +141,72 @@ export function renderProjects(projects) {
   return `${lines.join('\n')}`;
 }
 
+export function renderEnvPush(result) {
+  const title = result.kind === 'pushed' ? 'Env values pushed' : 'Env push plan';
+  const lines = [
+    title,
+    '',
+    ...formatList(result.entries.map((entry) => `${entry.key} - ${entry.target}`)),
+    '',
+  ];
+
+  return `${lines.join('\n')}`;
+}
+
+export function renderEnvRemove(result) {
+  const title = result.kind === 'removed' ? 'Env values removed' : 'Env remove plan';
+  const lines = [
+    title,
+    '',
+    ...formatList(result.entries.map((entry) => `${entry.key} - ${entry.target}`)),
+    '',
+  ];
+
+  return `${lines.join('\n')}`;
+}
+
+export function renderTeamOverview(overview) {
+  const lines = [
+    'Team config overview',
+    '',
+    `Projects analyzed: ${overview.projectCount}`,
+    '',
+    'Project groups:',
+  ];
+
+  for (const group of overview.groups) {
+    lines.push(`- ${group.name}`);
+    lines.push(`  Projects: ${group.projects.join(', ')}`);
+    lines.push('  Drift signals:');
+    for (const item of formatIndentedList(group.drift, 4)) {
+      lines.push(item);
+    }
+  }
+
+  lines.push('');
+  lines.push('Shared env candidates:');
+  lines.push(...formatList(overview.recommendations.sharedCandidates));
+  lines.push('');
+  lines.push('Project-specific envs:');
+  lines.push(...formatList(overview.recommendations.projectSpecific));
+  lines.push('');
+
+  return `${lines.join('\n')}`;
+}
+
 function formatList(items) {
   if (!items || items.length === 0) {
     return ['- None'];
   }
   return items.map((item) => `- ${item}`);
+}
+
+function formatIndentedList(items, spaces) {
+  const prefix = ' '.repeat(spaces);
+  if (!items || items.length === 0) {
+    return [`${prefix}- None`];
+  }
+  return items.map((item) => `${prefix}- ${item}`);
 }
 
 function formatSettings(settings) {

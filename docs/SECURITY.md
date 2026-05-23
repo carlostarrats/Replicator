@@ -28,6 +28,14 @@ Vercel Config Manager is designed to avoid owning secrets.
 
 Domains, integration credentials, and destructive changes are skipped by default and listed for manual review.
 
+## Optional Local Env Push
+
+`env-push` is the only command that sends secret values to Vercel. It reads a local `.env` file, requires an explicit `--keys` allowlist, supports `--dry-run`, and refuses to write unless `--apply --yes` is provided.
+
+The command does not print secret values in terminal, Markdown, or JSON output.
+
+`env-rm` refuses to remove one target from an env entry that is scoped to multiple Vercel targets, because deleting by env ID can remove the whole entry. In that case, recreate the variable manually in Vercel with the intended scopes.
+
 ## Authentication
 
 The CLI uses `VERCEL_TOKEN` or `--token` when provided. If neither is set, it attempts to use the local Vercel CLI auth file created by `vercel login`.

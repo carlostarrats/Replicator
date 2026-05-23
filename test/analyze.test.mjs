@@ -128,9 +128,13 @@ async function startFakeVercelApi(options = {}) {
       response.end(JSON.stringify({
         envs: [
           {
+            id: 'vq_delete',
             key: 'DATABASE_URL',
             target: ['production', 'preview'],
             type: 'encrypted',
+            value: 'encrypted-payload',
+            createdBy: 'user_123',
+            lastEditedByDisplayName: 'Person',
           },
           {
             key: 'NEXT_PUBLIC_APP_URL',
@@ -143,6 +147,7 @@ async function startFakeVercelApi(options = {}) {
             type: 'encrypted',
           },
           {
+            id: 'vq_blob_delete',
             key: 'BLOB_READ_WRITE_TOKEN',
             target: ['production'],
             type: 'encrypted',
@@ -247,7 +252,28 @@ async function startFakeVercelApi(options = {}) {
       response.end(JSON.stringify({
         id: 'prj_789',
         name: requestBody ? JSON.parse(requestBody).name : 'brand-c-web',
+        accountId: 'team_secret_scope',
+        features: { webAnalytics: true },
       }));
+      return;
+    }
+
+    if (request.method === 'POST' && url.pathname === '/v9/projects/brand-a-web/env') {
+      response.statusCode = 201;
+      response.end(JSON.stringify({
+        created: true,
+        key: requestBody ? JSON.parse(requestBody).key : undefined,
+      }));
+      return;
+    }
+
+    if (request.method === 'DELETE' && url.pathname === '/v9/projects/brand-a-web/env/vq_delete') {
+      response.end(JSON.stringify({ removed: true }));
+      return;
+    }
+
+    if (request.method === 'DELETE' && url.pathname === '/v9/projects/brand-a-web/env/vq_blob_delete') {
+      response.end(JSON.stringify({ removed: true }));
       return;
     }
 
@@ -528,6 +554,65 @@ test('diff can export JSON drift data', async () => {
   }
 });
 
+test('diff can fail the process when drift is detected', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'diff',
+      'brand-a-web',
+      'brand-b-web',
+      '--api-base',
+      api.apiBase,
+      '--fail-on-drift',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 2);
+    assert.match(result.stdout, /Different:/);
+    assert.match(result.stdout, /DATABASE_URL/);
+  } finally {
+    await api.close();
+  }
+});
+
+test('report combines analysis readiness duplicate plan and diff', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-report-'));
+  const out = join(dir, 'migration.md');
+
+  try {
+    const result = await runCli([
+      'report',
+      '--from',
+      'brand-a-web',
+      '--to',
+      'brand-b-web',
+      '--api-base',
+      api.apiBase,
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, new RegExp(`Report saved to ${out.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    const report = await readFile(out, 'utf8');
+    assert.match(report, /# Vercel Migration Report/);
+    assert.match(report, /Source: brand-a-web/);
+    assert.match(report, /Target: brand-b-web/);
+    assert.match(report, /## Duplicate Plan/);
+    assert.match(report, /## Target Readiness/);
+    assert.match(report, /## Project Diff/);
+    assert.match(report, /DATABASE_URL/);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('check reports practical readiness and blocked environment gaps', async () => {
   const api = await startFakeVercelApi();
 
@@ -689,6 +774,42 @@ test('duplicate apply creates a project and leaves secret values for manual entr
   }
 });
 
+test('duplicate apply JSON output sanitizes created project metadata', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-apply-json-'));
+  const out = join(dir, 'created.json');
+
+  try {
+    const result = await runCli([
+      'duplicate',
+      '--from',
+      'brand-a-web',
+      '--to',
+      'brand-c-web',
+      '--api-base',
+      api.apiBase,
+      '--apply',
+      '--yes',
+      '--format',
+      'json',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const report = JSON.parse(await readFile(out, 'utf8'));
+    assert.equal(report.createdProject.name, 'brand-c-web');
+    assert.equal(report.createdProject.id, 'prj_789');
+    assert.equal(report.createdProject.accountId, undefined);
+    assert.equal(report.createdProject.features, undefined);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('refactor-env recommends shared and project-specific variables across projects', async () => {
   const api = await startFakeVercelApi();
 
@@ -731,6 +852,30 @@ test('refactor-env can analyze an explicit project list', async () => {
     assert.equal(result.code, 0, result.stderr);
     assert.match(result.stdout, /OPENAI_API_KEY - used by 2 projects/);
     assert.equal(api.requests.filter((request) => request.url === '/v9/projects').length, 0);
+  } finally {
+    await api.close();
+  }
+});
+
+test('overview groups related projects and surfaces variant drift', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'overview',
+      '--api-base',
+      api.apiBase,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Team config overview/);
+    assert.match(result.stdout, /acme\/app-monorepo :: apps\/web/);
+    assert.match(result.stdout, /brand-a-web, brand-b-web/);
+    assert.match(result.stdout, /Drift signals:/);
+    assert.match(result.stdout, /DATABASE_URL differs across projects/);
+    assert.match(result.stdout, /BLOB_READ_WRITE_TOKEN missing from brand-b-web/);
   } finally {
     await api.close();
   }
@@ -951,6 +1096,165 @@ test('env-template exports env names without secret values', async () => {
   }
 });
 
+test('env-push dry-run previews selected local env values without printing secrets', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-push-'));
+  const envFile = join(dir, '.env');
+
+  try {
+    await writeFile(envFile, [
+      'DATABASE_URL=postgres://secret',
+      'OPENAI_API_KEY=sk-secret',
+      '',
+    ].join('\n'));
+
+    const result = await runCli([
+      'env-push',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--env-file',
+      envFile,
+      '--keys',
+      'DATABASE_URL',
+      '--target',
+      'preview',
+      '--dry-run',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env push plan/);
+    assert.match(result.stdout, /DATABASE_URL - preview/);
+    assert.doesNotMatch(result.stdout, /postgres:\/\/secret/);
+    assert.equal(api.requests.some((request) => request.method === 'POST' && request.url.includes('/env')), false);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('env-push apply writes selected local env values only with explicit confirmation', async () => {
+  const api = await startFakeVercelApi();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-apply-'));
+  const envFile = join(dir, '.env');
+
+  try {
+    await writeFile(envFile, 'DATABASE_URL=postgres://secret\nOPENAI_API_KEY=sk-secret\n');
+
+    const result = await runCli([
+      'env-push',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--env-file',
+      envFile,
+      '--keys',
+      'DATABASE_URL',
+      '--target',
+      'preview',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env values pushed/);
+    assert.doesNotMatch(result.stdout, /postgres:\/\/secret/);
+
+    const envRequest = api.requests.find((request) => request.method === 'POST' && request.url === '/v9/projects/brand-a-web/env');
+    assert.equal(envRequest.body.key, 'DATABASE_URL');
+    assert.equal(envRequest.body.value, 'postgres://secret');
+    assert.deepEqual(envRequest.body.target, ['preview']);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('env-rm dry-run previews matching env vars without deleting', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'env-rm',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--key',
+      'BLOB_READ_WRITE_TOKEN',
+      '--target',
+      'production',
+      '--dry-run',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env remove plan/);
+    assert.match(result.stdout, /BLOB_READ_WRITE_TOKEN - production/);
+    assert.equal(api.requests.some((request) => request.method === 'DELETE'), false);
+  } finally {
+    await api.close();
+  }
+});
+
+test('env-rm apply deletes matching env vars only with explicit confirmation', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'env-rm',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--key',
+      'BLOB_READ_WRITE_TOKEN',
+      '--target',
+      'production',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env values removed/);
+    assert.ok(api.requests.some((request) => request.method === 'DELETE' && request.url === '/v9/projects/brand-a-web/env/vq_blob_delete'));
+  } finally {
+    await api.close();
+  }
+});
+
+test('env-rm refuses to delete one target from a multi-target env entry', async () => {
+  const api = await startFakeVercelApi();
+
+  try {
+    const result = await runCli([
+      'env-rm',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--key',
+      'DATABASE_URL',
+      '--target',
+      'preview',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Refusing to remove DATABASE_URL for preview/);
+    assert.equal(api.requests.some((request) => request.method === 'DELETE'), false);
+  } finally {
+    await api.close();
+  }
+});
+
 test('analyze scans source code for env vars missing from Vercel', async () => {
   const api = await startFakeVercelApi();
   const dir = await mkdtemp(join(tmpdir(), 'vcopy-code-'));
@@ -1079,6 +1383,9 @@ test('analyze can export JSON for automation', async () => {
     assert.equal(report.project.name, 'brand-a-web');
     assert.equal(report.envs.length, 4);
     assert.equal(report.domains.length, 2);
+    assert.equal(report.envs[0].value, undefined);
+    assert.equal(report.envs[0].createdBy, undefined);
+    assert.equal(report.envs[0].lastEditedByDisplayName, undefined);
   } finally {
     await api.close();
     await rm(dir, { recursive: true, force: true });

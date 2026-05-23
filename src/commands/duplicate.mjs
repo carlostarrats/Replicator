@@ -1,6 +1,7 @@
 import { createDuplicatePlan } from '../analysis/duplicate-plan.mjs';
 import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
 import { readVercelConfig } from '../analysis/read-vercel-config.mjs';
+import { sanitizeEnv, sanitizeProject } from '../analysis/sanitize.mjs';
 import { createProject } from '../vercel/client.mjs';
 
 export async function duplicateProject(options) {
@@ -40,7 +41,7 @@ export async function duplicateProject(options) {
   return {
     kind: 'created',
     plan,
-    createdProject,
-    sourceEnv: snapshot.envs,
+    createdProject: sanitizeProject(createdProject),
+    sourceEnv: snapshot.envs.map(sanitizeEnv),
   };
 }

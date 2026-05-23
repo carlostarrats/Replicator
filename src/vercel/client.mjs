@@ -57,6 +57,27 @@ export async function createProject({ apiBase, token, teamId, project }) {
   });
 }
 
+export async function createProjectEnv({ apiBase, token, teamId, idOrName, env }) {
+  return vercelRequest({
+    apiBase,
+    token,
+    teamId,
+    pathname: `/v9/projects/${encodeURIComponent(idOrName)}/env`,
+    method: 'POST',
+    body: env,
+  });
+}
+
+export async function removeProjectEnv({ apiBase, token, teamId, idOrName, envId }) {
+  return vercelRequest({
+    apiBase,
+    token,
+    teamId,
+    pathname: `/v9/projects/${encodeURIComponent(idOrName)}/env/${encodeURIComponent(envId)}`,
+    method: 'DELETE',
+  });
+}
+
 export async function listDeployments({ apiBase, token, teamId, projectName, limit = 1 }) {
   const query = new Map([
     ['projectId', projectName],

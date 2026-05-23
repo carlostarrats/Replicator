@@ -6,12 +6,16 @@ import { analyzeProject } from './commands/analyze.mjs';
 import { checkProject } from './commands/check.mjs';
 import { diffProjects } from './commands/diff.mjs';
 import { duplicateProject } from './commands/duplicate.mjs';
+import { pushEnv } from './commands/env-push.mjs';
+import { removeEnv } from './commands/env-rm.mjs';
 import { createEnvTemplate } from './commands/env-template.mjs';
 import { listVercelProjects } from './commands/projects.mjs';
 import { refactorEnv } from './commands/refactor-env.mjs';
+import { createMigrationReport } from './commands/report.mjs';
 import { listVercelTeams } from './commands/teams.mjs';
 import { verifyProject } from './commands/verify.mjs';
-import { renderDeploymentVerification, renderDiff, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
+import { createOverview } from './commands/overview.mjs';
+import { renderDeploymentVerification, renderDiff, renderEnvPush, renderEnvRemove, renderProjects, renderReadiness, renderTeams } from './output/terminal.mjs';
 import { renderDuplicateCreated, renderDuplicatePlan } from './output/terminal.mjs';
 import { listProjects } from './vercel/client.mjs';
 
@@ -23,7 +27,7 @@ async function main(argv) {
     return 0;
   }
 
-  if (!['analyze', 'check', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template'].includes(command)) {
+  if (!['analyze', 'check', 'diff', 'duplicate', 'refactor-env', 'verify', 'teams', 'projects', 'env-template', 'env-push', 'env-rm', 'report', 'overview'].includes(command)) {
     throw new CliError(`Unknown command: ${command}`, 1);
   }
 
@@ -43,12 +47,24 @@ async function main(argv) {
       ? `${JSON.stringify(diff, null, 2)}\n`
       : renderDiff(diff);
     await writeCommandOutput(output, options);
-    return 0;
+    return options.failOnDrift && hasDrift(diff) ? 2 : 0;
   }
 
   if (command === 'duplicate') {
     const result = await duplicateProject(options);
     const output = renderDuplicateResult(result, options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'report') {
+    const output = await createMigrationReport(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'overview') {
+    const output = await createOverview(options);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -86,6 +102,24 @@ async function main(argv) {
 
   if (command === 'env-template') {
     const output = await createEnvTemplate(options);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'env-push') {
+    const result = await pushEnv(options);
+    const output = options.format === 'json'
+      ? `${JSON.stringify(result, null, 2)}\n`
+      : renderEnvPush(result);
+    await writeCommandOutput(output, options);
+    return 0;
+  }
+
+  if (command === 'env-rm') {
+    const result = await removeEnv(options);
+    const output = options.format === 'json'
+      ? `${JSON.stringify(result, null, 2)}\n`
+      : renderEnvRemove(result);
     await writeCommandOutput(output, options);
     return 0;
   }
@@ -134,6 +168,12 @@ function renderVerifyResult(result, options) {
   return renderDeploymentVerification(result);
 }
 
+function hasDrift(result) {
+  return result.diff.different.length > 0
+    || result.diff.missingFromLeft.length > 0
+    || result.diff.missingFromRight.length > 0;
+}
+
 async function writeCommandOutput(output, options) {
   if (!options.out) {
     process.stdout.write(output);
@@ -158,6 +198,11 @@ async function parseArgs(command, args) {
     apply: false,
     yes: false,
     failOnBlocked: false,
+    failOnDrift: false,
+    envFile: undefined,
+    keys: undefined,
+    key: undefined,
+    target: undefined,
     apiBase: process.env.VCOPY_API_BASE || 'https://api.vercel.com',
     out: command === 'analyze' ? './vcopy-report.md' : undefined,
     codeRoot: undefined,
@@ -220,6 +265,33 @@ async function parseArgs(command, args) {
       continue;
     }
 
+    if (arg === '--env-file') {
+      options.envFile = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--keys') {
+      options.keys = requireValue(args, index, arg)
+        .split(',')
+        .map((key) => key.trim())
+        .filter(Boolean);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--key') {
+      options.key = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--target') {
+      options.target = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
     if (arg === '--to') {
       options.toProject = requireValue(args, index, arg);
       index += 1;
@@ -243,6 +315,11 @@ async function parseArgs(command, args) {
 
     if (arg === '--fail-on-blocked') {
       options.failOnBlocked = true;
+      continue;
+    }
+
+    if (arg === '--fail-on-drift') {
+      options.failOnDrift = true;
       continue;
     }
 
@@ -281,7 +358,7 @@ async function parseArgs(command, args) {
     throw new CliError('Unsupported format. Use markdown or json.', 1);
   }
 
-  if ((command === 'check' || command === 'env-template') && !options.project) {
+  if ((command === 'check' || command === 'env-template' || command === 'env-push' || command === 'env-rm') && !options.project) {
     throw new CliError(`Usage: vcopy ${command} <project>`, 1);
   }
 
@@ -289,11 +366,11 @@ async function parseArgs(command, args) {
     throw new CliError('Usage: vcopy diff <project-a> <project-b>', 1);
   }
 
-  if (command === 'duplicate') {
+  if (command === 'duplicate' || command === 'report') {
     if (!options.fromProject || !options.toProject) {
-      throw new CliError('Usage: vcopy duplicate --from <source-project> --to <new-project> [--dry-run|--apply]', 1);
+      throw new CliError(`Usage: vcopy ${command} --from <source-project> --to <target-project>`, 1);
     }
-    if (options.dryRun && options.apply) {
+    if (command === 'duplicate' && options.dryRun && options.apply) {
       throw new CliError('Choose either --dry-run or --apply, not both.', 1);
     }
   }
@@ -422,14 +499,23 @@ Usage:
   vcopy teams
   vcopy projects
   vcopy env-template <project>
+  vcopy env-push <project>
+  vcopy env-rm <project>
+  vcopy report --from <source-project> --to <target-project>
+  vcopy overview
 
 Options:
   --api-base <url>   Override the Vercel API base URL.
   --code-root <dir>  Scan source code for process.env references.
   --format <type>    Output format: markdown or json.
   --fail-on-blocked  Exit 2 from check when readiness has blockers.
+  --fail-on-drift    Exit 2 from diff when drift is detected.
   --out <path>       Markdown report destination.
   --projects <list>  Comma-separated project names for refactor-env.
+  --env-file <path>  Local .env file for env-push.
+  --keys <list>      Comma-separated env keys for env-push.
+  --key <key>        Env key for env-rm.
+  --target <target>  Vercel env target for env-push.
   --team-id <id>     Vercel team ID for scoped projects.
   --token <token>    Vercel bearer token. Prefer VERCEL_TOKEN.
 `);
