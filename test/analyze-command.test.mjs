@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -168,6 +169,31 @@ test('analyze lists projects and uses the selected source when no project is pas
   }
 });
 
+test('analyze accepts interactive project selection on newline without waiting for EOF', async () => {
+  const api = await startLocalVercelApiTestServer();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-select-line-'));
+  const out = join(dir, 'selected.md');
+
+  try {
+    const result = await runCliKeepingStdinOpen([
+      'analyze',
+      '--api-base',
+      api.apiBase,
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    }, '1\n');
+
+    assert.equal(result.timedOut, false);
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(await readFile(out, 'utf8'), /brand-a-web/);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 
 test('analyze scans source code for env vars missing from Vercel', async () => {
   const api = await startLocalVercelApiTestServer();
@@ -240,6 +266,39 @@ test('analyze reports cron jobs and rewrites from vercel config', async () => {
     assert.match(report, /Vercel Config File/);
     assert.match(report, /Cron: \/api\/sync - 0 5 \* \* \*/);
     assert.match(report, /Rewrite: \/old -> \/new/);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('analyze escapes untrusted vercel config values in Markdown', async () => {
+  const api = await startLocalVercelApiTestServer();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-analyze-escape-'));
+  const out = join(dir, 'analysis.md');
+
+  try {
+    await writeFile(join(dir, 'vercel.json'), JSON.stringify({
+      rewrites: [{ source: '<img src=x onerror=alert(1)>', destination: '/ok' }],
+    }));
+
+    const result = await runCli([
+      'analyze',
+      'brand-a-web',
+      '--api-base',
+      api.apiBase,
+      '--code-root',
+      dir,
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const report = await readFile(out, 'utf8');
+    assert.doesNotMatch(report, /<img src=x onerror=alert\(1\)>/);
+    assert.match(report, /&lt;img src=x onerror=alert\(1\)&gt;/);
   } finally {
     await api.close();
     await rm(dir, { recursive: true, force: true });
@@ -336,3 +395,34 @@ test('analyze reports likely services from environment variable names', async ()
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+function runCliKeepingStdinOpen(args, env, input) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['src/cli.mjs', ...args], {
+      cwd: process.cwd(),
+      env: { ...process.env, VERCEL_AUTH_FILE: '', ...env },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
+
+    const timeout = setTimeout(() => {
+      child.kill();
+      resolve({ code: null, stdout, stderr, timedOut: true });
+    }, 750);
+
+    child.on('close', (code) => {
+      clearTimeout(timeout);
+      resolve({ code, stdout, stderr, timedOut: false });
+    });
+
+    child.stdin.write(input);
+  });
+}

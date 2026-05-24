@@ -188,6 +188,31 @@ test('template file validation reports invalid fields clearly', async () => {
   }
 });
 
+test('template file validation rejects non-object JSON clearly', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-template-invalid-top-'));
+  const templatePath = join(dir, 'template.json');
+
+  try {
+    await writeFile(templatePath, 'null');
+
+    const result = await runCli([
+      'template-plan',
+      '--template',
+      templatePath,
+      '--to',
+      'brand-c-web',
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Invalid template.json/);
+    assert.match(result.stderr, /must be an object/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 
 test('env-push dry-run previews selected local env values without printing secrets', async () => {
   const api = await startLocalVercelApiTestServer();
@@ -203,7 +228,7 @@ test('env-push dry-run previews selected local env values without printing secre
 
     const result = await runCli([
       'env-push',
-      'brand-a-web',
+      'vcopy-test-target',
       '--api-base',
       api.apiBase,
       '--env-file',
@@ -238,6 +263,46 @@ test('env-push apply writes selected local env values only with explicit confirm
 
     const result = await runCli([
       'env-push',
+      'vcopy-test-target',
+      '--api-base',
+      api.apiBase,
+      '--env-file',
+      envFile,
+      '--keys',
+      'DATABASE_URL',
+      '--target',
+      'preview',
+      '--test-project-only',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env values pushed/);
+    assert.doesNotMatch(result.stdout, /postgres:\/\/secret/);
+
+    const envRequest = api.requests.find((request) => request.method === 'POST' && request.url === '/v9/projects/vcopy-test-target/env');
+    assert.equal(envRequest.body.key, 'DATABASE_URL');
+    assert.equal(envRequest.body.value, 'postgres://secret');
+    assert.deepEqual(envRequest.body.target, ['preview']);
+  } finally {
+    await api.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('env-push apply refuses non-test projects', async () => {
+  const api = await startLocalVercelApiTestServer();
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-env-apply-refuse-'));
+  const envFile = join(dir, '.env');
+
+  try {
+    await writeFile(envFile, 'DATABASE_URL=postgres://secret\n');
+
+    const result = await runCli([
+      'env-push',
       'brand-a-web',
       '--api-base',
       api.apiBase,
@@ -253,14 +318,9 @@ test('env-push apply writes selected local env values only with explicit confirm
       VERCEL_TOKEN: 'test-token',
     });
 
-    assert.equal(result.code, 0, result.stderr);
-    assert.match(result.stdout, /Env values pushed/);
-    assert.doesNotMatch(result.stdout, /postgres:\/\/secret/);
-
-    const envRequest = api.requests.find((request) => request.method === 'POST' && request.url === '/v9/projects/brand-a-web/env');
-    assert.equal(envRequest.body.key, 'DATABASE_URL');
-    assert.equal(envRequest.body.value, 'postgres://secret');
-    assert.deepEqual(envRequest.body.target, ['preview']);
+    assert.equal(result.code, 3);
+    assert.match(result.stderr, /Refusing write without --test-project-only --apply --yes/);
+    assert.equal(api.requests.some((request) => request.method === 'POST' && request.url.includes('/env')), false);
   } finally {
     await api.close();
     await rm(dir, { recursive: true, force: true });
@@ -273,7 +333,7 @@ test('env-rm dry-run previews matching env vars without deleting', async () => {
   try {
     const result = await runCli([
       'env-rm',
-      'brand-a-web',
+      'vcopy-test-target',
       '--api-base',
       api.apiBase,
       '--key',
@@ -300,6 +360,34 @@ test('env-rm apply deletes matching env vars only with explicit confirmation', a
   try {
     const result = await runCli([
       'env-rm',
+      'vcopy-test-target',
+      '--api-base',
+      api.apiBase,
+      '--key',
+      'BLOB_READ_WRITE_TOKEN',
+      '--target',
+      'production',
+      '--test-project-only',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Env values removed/);
+    assert.ok(api.requests.some((request) => request.method === 'DELETE' && request.url === '/v9/projects/vcopy-test-target/env/vq_blob_delete'));
+  } finally {
+    await api.close();
+  }
+});
+
+test('env-rm apply refuses non-test projects', async () => {
+  const api = await startLocalVercelApiTestServer();
+
+  try {
+    const result = await runCli([
+      'env-rm',
       'brand-a-web',
       '--api-base',
       api.apiBase,
@@ -313,9 +401,9 @@ test('env-rm apply deletes matching env vars only with explicit confirmation', a
       VERCEL_TOKEN: 'test-token',
     });
 
-    assert.equal(result.code, 0, result.stderr);
-    assert.match(result.stdout, /Env values removed/);
-    assert.ok(api.requests.some((request) => request.method === 'DELETE' && request.url === '/v9/projects/brand-a-web/env/vq_blob_delete'));
+    assert.equal(result.code, 3);
+    assert.match(result.stderr, /Refusing write without --test-project-only --apply --yes/);
+    assert.equal(api.requests.some((request) => request.method === 'DELETE'), false);
   } finally {
     await api.close();
   }
@@ -327,13 +415,14 @@ test('env-rm refuses to delete one target from a multi-target env entry', async 
   try {
     const result = await runCli([
       'env-rm',
-      'brand-a-web',
+      'vcopy-test-target',
       '--api-base',
       api.apiBase,
       '--key',
       'DATABASE_URL',
       '--target',
       'preview',
+      '--test-project-only',
       '--apply',
       '--yes',
     ], {

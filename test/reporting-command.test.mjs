@@ -257,6 +257,18 @@ test('check reports practical readiness and blocked environment gaps', async () 
   }
 });
 
+test('check missing project reports usage before auth errors', async () => {
+  const result = await runCli([
+    'check',
+  ], {
+    VERCEL_TOKEN: '',
+  });
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Usage: vcopy check <project>/);
+  assert.doesNotMatch(result.stderr, /Missing Vercel token/);
+});
+
 test('check can fail the process when readiness has blockers', async () => {
   const api = await startLocalVercelApiTestServer();
 

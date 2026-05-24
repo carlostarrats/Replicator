@@ -1,5 +1,6 @@
 import { readEnvFile } from '../analysis/read-env-file.mjs';
 import { createProjectEnv } from '../vercel/client.mjs';
+import { assertDryRunOrTestWrite } from './destructive-safety.mjs';
 
 export async function pushEnv(options) {
   if (!options.envFile) {
@@ -11,6 +12,8 @@ export async function pushEnv(options) {
   if (!options.target) {
     throw new Error('Missing --target for env-push.');
   }
+
+  assertDryRunOrTestWrite(options, [options.project]);
 
   const values = await readEnvFile(options.envFile);
   const entries = options.keys.map((key) => {

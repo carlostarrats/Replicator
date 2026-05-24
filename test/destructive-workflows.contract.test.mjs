@@ -286,6 +286,38 @@ test('cron and rewrite sync mutates only test fixture config files', async () =>
   }
 });
 
+test('routing sync refuses conflicting dry-run and apply flags without writing', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-routing-conflict-'));
+  const source = join(dir, 'source-vercel.json');
+  const target = join(dir, 'target-vercel.json');
+  const originalTarget = JSON.stringify({ crons: [], rewrites: [] }, null, 2);
+
+  try {
+    await writeFile(source, JSON.stringify({
+      crons: [{ path: '/api/test-sync', schedule: '0 5 * * *' }],
+      rewrites: [{ source: '/test-api/:path*', destination: '/api/:path*' }],
+    }, null, 2));
+    await writeFile(target, originalTarget);
+
+    const result = await runCli([
+      'routing-sync',
+      '--from-config',
+      source,
+      '--to-config',
+      target,
+      '--dry-run',
+      '--apply',
+      '--yes',
+    ], { VERCEL_TOKEN: '' });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Choose either --dry-run or --apply/);
+    assert.equal(await readFile(target, 'utf8'), originalTarget);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('unsafe destructive writes exit 3', async () => {
   const result = await runCli([
     'domain-move',

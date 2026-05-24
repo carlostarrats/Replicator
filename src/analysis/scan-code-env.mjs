@@ -3,7 +3,7 @@ import { join, relative } from 'node:path';
 
 const DOT_ENV_REFERENCE = /process\.env\.([A-Z0-9_]+)/g;
 const BRACKET_ENV_REFERENCE = /process\.env\[['"`]([A-Z0-9_]+)['"`]\]/g;
-const DESTRUCTURED_ENV_REFERENCE = /const\s*{([^}]+)}\s*=\s*process\.env/g;
+const DESTRUCTURED_ENV_REFERENCE = /\b(?:const|let|var)\s*{([^}]+)}\s*=\s*process\.env/g;
 const SCANNED_EXTENSIONS = new Set(['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx']);
 const SKIPPED_DIRS = new Set(['.git', '.next', '.vercel', 'node_modules', 'dist', 'build', 'coverage']);
 
@@ -51,7 +51,7 @@ function recordMatches(refs, file, matches) {
 function recordDestructuredMatches(refs, file, matches) {
   for (const match of matches) {
     for (const part of match[1].split(',')) {
-      const key = part.trim().split(':')[0].trim();
+      const key = part.trim().split(':')[0].split('=')[0].trim();
       if (/^[A-Z0-9_]+$/.test(key)) {
         recordRef(refs, key, file);
       }

@@ -233,7 +233,7 @@ export function renderViewerHtml() {
 
     function renderCi(data) {
       return [
-        panel('CI status', '<div class="metric"><span class="pill status-' + data.status + '">' + escapeHtml(data.status) + '</span><span class="pill">Readiness ' + data.readiness.score + '%</span></div>'),
+        panel('CI status', '<div class="metric"><span class="pill ' + safeStatusClass(data.status) + '">' + escapeHtml(data.status) + '</span><span class="pill">Readiness ' + escapeHtml(data.readiness.score) + '%</span></div>'),
         panel('Blocked', list(data.readiness.blocked)),
         panel('Drift', list([...(data.diff.diff.different || []), ...(data.diff.diff.missingFromLeft || []), ...(data.diff.diff.missingFromRight || [])]), true)
       ].join('');
@@ -250,7 +250,7 @@ export function renderViewerHtml() {
 
     function renderReadiness(data) {
       return [
-        panel('Readiness', '<div class="metric"><span class="pill">' + data.score + '%</span></div>'),
+        panel('Readiness', '<div class="metric"><span class="pill">' + escapeHtml(data.score) + '%</span></div>'),
         panel('Ready', list(data.ready)),
         panel('Needs attention', list(data.needsAttention)),
         panel('Blocked', list(data.blocked))
@@ -268,7 +268,7 @@ export function renderViewerHtml() {
 
     function renderOverview(data) {
       return [
-        panel('Overview', '<div class="metric"><span class="pill">' + data.projectCount + ' projects</span></div>'),
+        panel('Overview', '<div class="metric"><span class="pill">' + escapeHtml(data.projectCount) + ' projects</span></div>'),
         panel('Groups', list((data.groups || []).map(group => group.name + ': ' + group.projects.join(', ')))),
         panel('Drift signals', list((data.groups || []).flatMap(group => group.drift))),
         panel('Shared candidates', list(data.recommendations.sharedCandidates || []))
@@ -307,6 +307,11 @@ export function renderViewerHtml() {
       const entries = Object.entries(object || {}).filter(([, value]) => value !== undefined && value !== null && value !== '');
       if (!entries.length) return '<p class="empty">None</p>';
       return '<div class="metric">' + entries.map(([key, value]) => '<span class="pill">' + escapeHtml(key) + ': ' + escapeHtml(String(value)) + '</span>').join('') + '</div>';
+    }
+
+    function safeStatusClass(value) {
+      const status = String(value || '').toLowerCase();
+      return /^[a-z0-9-]+$/.test(status) ? 'status-' + status : 'status-warning';
     }
 
     function escapeHtml(value) {

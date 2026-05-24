@@ -78,3 +78,22 @@ test('config file validation reports invalid fields clearly', async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('config file validation rejects non-object JSON clearly', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-config-invalid-top-'));
+
+  try {
+    const config = join(dir, '.vcopyrc.json');
+    await writeFile(config, 'null');
+
+    const result = await runCli(['viewer', '--config', config, '--out', join(dir, 'viewer.html')], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /Invalid .vcopyrc.json/);
+    assert.match(result.stderr, /must be an object/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

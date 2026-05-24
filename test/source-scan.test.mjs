@@ -12,6 +12,9 @@ test('source scanner finds dot bracket template and destructured env refs', asyn
     await writeFile(join(dir, 'app.ts'), [
       'const direct = process.env.DATABASE_URL;',
       'const { OPENAI_API_KEY, STRIPE_SECRET_KEY: stripeKey } = process.env;',
+      'const { DEFAULTED_SECRET = "" } = process.env;',
+      'let { LET_SECRET } = process.env;',
+      'var { VAR_SECRET: localVarSecret = "" } = process.env;',
       'const bracket = process.env["BLOB_READ_WRITE_TOKEN"];',
       'const template = process.env[`SENTRY_DSN`];',
       '',
@@ -23,9 +26,12 @@ test('source scanner finds dot bracket template and destructured env refs', asyn
     assert.deepEqual(keys, [
       'BLOB_READ_WRITE_TOKEN',
       'DATABASE_URL',
+      'DEFAULTED_SECRET',
+      'LET_SECRET',
       'OPENAI_API_KEY',
       'SENTRY_DSN',
       'STRIPE_SECRET_KEY',
+      'VAR_SECRET',
     ]);
   } finally {
     await rm(dir, { recursive: true, force: true });

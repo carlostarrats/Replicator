@@ -92,6 +92,46 @@ test('duplicate apply creates a project and leaves secret values for manual entr
       '--from',
       'brand-a-web',
       '--to',
+      'vcopy-test-brand-c',
+      '--api-base',
+      api.apiBase,
+      '--test-project-only',
+      '--apply',
+      '--yes',
+    ], {
+      VERCEL_TOKEN: 'test-token',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Duplicate created/);
+    assert.match(result.stdout, /New project: vcopy-test-brand-c/);
+    assert.match(result.stdout, /Copied:/);
+    assert.match(result.stdout, /Build settings/);
+    assert.match(result.stdout, /Missing values checklist:/);
+    assert.match(result.stdout, /vercel env add DATABASE_URL production/);
+    assert.match(result.stdout, /vercel env add DATABASE_URL preview/);
+
+    const createRequest = api.requests.find((request) => request.method === 'POST' && request.url === '/v10/projects');
+    assert.equal(createRequest.body.name, 'vcopy-test-brand-c');
+    assert.equal(createRequest.body.framework, 'nextjs');
+    assert.equal(createRequest.body.buildCommand, 'pnpm build');
+    assert.equal(createRequest.body.devCommand, 'pnpm dev');
+    assert.equal(createRequest.body.rootDirectory, 'apps/web');
+    assert.equal(api.requests.some((request) => request.method === 'POST' && request.url.includes('/env')), false);
+  } finally {
+    await api.close();
+  }
+});
+
+test('duplicate apply refuses non-test target projects', async () => {
+  const api = await startLocalVercelApiTestServer();
+
+  try {
+    const result = await runCli([
+      'duplicate',
+      '--from',
+      'brand-a-web',
+      '--to',
       'brand-c-web',
       '--api-base',
       api.apiBase,
@@ -101,22 +141,9 @@ test('duplicate apply creates a project and leaves secret values for manual entr
       VERCEL_TOKEN: 'test-token',
     });
 
-    assert.equal(result.code, 0, result.stderr);
-    assert.match(result.stdout, /Duplicate created/);
-    assert.match(result.stdout, /New project: brand-c-web/);
-    assert.match(result.stdout, /Copied:/);
-    assert.match(result.stdout, /Build settings/);
-    assert.match(result.stdout, /Missing values checklist:/);
-    assert.match(result.stdout, /vercel env add DATABASE_URL production/);
-    assert.match(result.stdout, /vercel env add DATABASE_URL preview/);
-
-    const createRequest = api.requests.find((request) => request.method === 'POST' && request.url === '/v10/projects');
-    assert.equal(createRequest.body.name, 'brand-c-web');
-    assert.equal(createRequest.body.framework, 'nextjs');
-    assert.equal(createRequest.body.buildCommand, 'pnpm build');
-    assert.equal(createRequest.body.devCommand, 'pnpm dev');
-    assert.equal(createRequest.body.rootDirectory, 'apps/web');
-    assert.equal(api.requests.some((request) => request.method === 'POST' && request.url.includes('/env')), false);
+    assert.equal(result.code, 3);
+    assert.match(result.stderr, /Refusing write without --test-project-only --apply --yes/);
+    assert.equal(api.requests.some((request) => request.method === 'POST'), false);
   } finally {
     await api.close();
   }
@@ -133,9 +160,10 @@ test('duplicate apply JSON output sanitizes created project metadata', async () 
       '--from',
       'brand-a-web',
       '--to',
-      'brand-c-web',
+      'vcopy-test-brand-c',
       '--api-base',
       api.apiBase,
+      '--test-project-only',
       '--apply',
       '--yes',
       '--format',
@@ -148,7 +176,7 @@ test('duplicate apply JSON output sanitizes created project metadata', async () 
 
     assert.equal(result.code, 0, result.stderr);
     const report = JSON.parse(await readFile(out, 'utf8'));
-    assert.equal(report.createdProject.name, 'brand-c-web');
+    assert.equal(report.createdProject.name, 'vcopy-test-brand-c');
     assert.equal(report.createdProject.id, 'prj_789');
     assert.equal(report.createdProject.accountId, undefined);
     assert.equal(report.createdProject.features, undefined);
@@ -157,4 +185,3 @@ test('duplicate apply JSON output sanitizes created project metadata', async () 
     await rm(dir, { recursive: true, force: true });
   }
 });
-

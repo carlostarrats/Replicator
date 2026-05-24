@@ -2,6 +2,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { getCommand, isKnownCommand } from './cli/command-registry.mjs';
 import { EXIT_CODES } from './cli/exit-codes.mjs';
 import { loadVcopyConfig } from './config/load-config.mjs';
@@ -558,11 +559,16 @@ async function parseArgs(command, args) {
   options.teamId = options.teamId || config.teamId;
   options.testProjectPrefix = options.testProjectPrefix || config.testProjectPrefix;
   options.defaultOutDir = options.defaultOutDir || config.defaultOutDir;
+  if (options.dryRun && options.apply) {
+    throw new CliError('Choose either --dry-run or --apply, not both.', 1);
+  }
   if (command === 'analyze' && !options.out) {
     options.out = join(options.defaultOutDir || '.', 'vcopy-report.md');
   }
 
   const localOnlyCommands = new Set(['audit-save', 'handoff-package', 'policy-check', 'routing-sync', 'snapshot-diff', 'snapshot-save', 'template-plan', 'viewer']);
+
+  validateCommandUsage(command, options);
 
   options.token = localOnlyCommands.has(command) ? options.token : await resolveToken(options.token);
   if (!localOnlyCommands.has(command) && !options.token) {
@@ -572,6 +578,10 @@ async function parseArgs(command, args) {
     options.teamId = await resolveTeamId(options.codeRoot);
   }
 
+  return options;
+}
+
+function validateCommandUsage(command, options) {
   if (!['markdown', 'json'].includes(options.format)) {
     throw new CliError('Unsupported format. Use markdown or json.', 1);
   }
@@ -595,9 +605,6 @@ async function parseArgs(command, args) {
   ].includes(command)) {
     if (!options.fromProject || !options.toProject) {
       throw new CliError(`Usage: vcopy ${command} --from <source-project> --to <target-project>`, 1);
-    }
-    if (command === 'duplicate' && options.dryRun && options.apply) {
-      throw new CliError('Choose either --dry-run or --apply, not both.', 1);
     }
   }
 
@@ -628,8 +635,6 @@ async function parseArgs(command, args) {
   if (command === 'handoff-package' && (!options.reportFile || !options.outDir)) {
     throw new CliError('Usage: vcopy handoff-package --report <report.json> --out-dir <directory>', 1);
   }
-
-  return options;
 }
 
 async function resolveTeamId(codeRoot) {
@@ -715,16 +720,12 @@ async function selectProject(options) {
 }
 
 function readStdin() {
-  return new Promise((resolve, reject) => {
-    let input = '';
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => {
-      input += chunk;
-    });
-    process.stdin.on('end', () => {
-      resolve(input);
-    });
-    process.stdin.on('error', reject);
+  const reader = createInterface({
+    input: process.stdin,
+    terminal: false,
+  });
+  return reader.question('').finally(() => {
+    reader.close();
   });
 }
 

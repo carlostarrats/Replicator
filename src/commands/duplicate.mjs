@@ -3,6 +3,7 @@ import { loadConfigSnapshot } from '../analysis/config-snapshot.mjs';
 import { readVercelConfig } from '../analysis/read-vercel-config.mjs';
 import { sanitizeEnv, sanitizeProject } from '../analysis/sanitize.mjs';
 import { createProject } from '../vercel/client.mjs';
+import { assertTestProjectWrite } from './destructive-safety.mjs';
 
 export async function duplicateProject(options) {
   const snapshot = await loadConfigSnapshot(options, options.fromProject);
@@ -22,6 +23,8 @@ export async function duplicateProject(options) {
   if (!options.yes) {
     throw new Error('Refusing to apply without confirmation. Re-run with --yes after reviewing the dry-run plan.');
   }
+
+  assertTestProjectWrite(options, [options.toProject]);
 
   const createdProject = await createProject({
     apiBase: options.apiBase,

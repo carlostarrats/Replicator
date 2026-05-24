@@ -1,5 +1,6 @@
 import { normalizeTargets } from '../analysis/config-snapshot.mjs';
 import { listProjectEnv, removeProjectEnv } from '../vercel/client.mjs';
+import { assertDryRunOrTestWrite } from './destructive-safety.mjs';
 
 export async function removeEnv(options) {
   if (!options.key) {
@@ -8,6 +9,8 @@ export async function removeEnv(options) {
   if (!options.target) {
     throw new Error('Missing --target for env-rm.');
   }
+
+  assertDryRunOrTestWrite(options, [options.project]);
 
   const envs = await listProjectEnv({
     apiBase: options.apiBase,

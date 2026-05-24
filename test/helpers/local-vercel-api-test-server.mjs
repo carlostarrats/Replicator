@@ -90,7 +90,7 @@ export async function startLocalVercelApiTestServer(options = {}) {
       return;
     }
 
-    if (request.method === 'GET' && url.pathname === '/v9/projects/brand-a-web/env') {
+    if (request.method === 'GET' && (url.pathname === '/v9/projects/brand-a-web/env' || url.pathname === '/v9/projects/vcopy-test-target/env')) {
       response.end(JSON.stringify({
         envs: [
           {
@@ -224,7 +224,7 @@ export async function startLocalVercelApiTestServer(options = {}) {
       return;
     }
 
-    if (request.method === 'POST' && url.pathname === '/v9/projects/brand-a-web/env') {
+    if (request.method === 'POST' && (url.pathname === '/v9/projects/brand-a-web/env' || url.pathname === '/v9/projects/vcopy-test-target/env')) {
       response.statusCode = 201;
       response.end(JSON.stringify({
         created: true,
@@ -233,12 +233,12 @@ export async function startLocalVercelApiTestServer(options = {}) {
       return;
     }
 
-    if (request.method === 'DELETE' && url.pathname === '/v9/projects/brand-a-web/env/vq_delete') {
+    if (request.method === 'DELETE' && (url.pathname === '/v9/projects/brand-a-web/env/vq_delete' || url.pathname === '/v9/projects/vcopy-test-target/env/vq_delete')) {
       response.end(JSON.stringify({ removed: true }));
       return;
     }
 
-    if (request.method === 'DELETE' && url.pathname === '/v9/projects/brand-a-web/env/vq_blob_delete') {
+    if (request.method === 'DELETE' && (url.pathname === '/v9/projects/brand-a-web/env/vq_blob_delete' || url.pathname === '/v9/projects/vcopy-test-target/env/vq_blob_delete')) {
       response.end(JSON.stringify({ removed: true }));
       return;
     }

@@ -1,5 +1,9 @@
 export function validateVcopyConfig(config) {
   const errors = [];
+  requirePlainObject(config, '.vcopyrc.json', errors);
+  if (errors.length > 0) {
+    throwIfInvalid('.vcopyrc.json', errors);
+  }
   optionalString(config, 'teamId', errors);
   optionalString(config, 'testProjectPrefix', errors);
   optionalString(config, 'defaultOutDir', errors);
@@ -8,6 +12,10 @@ export function validateVcopyConfig(config) {
 
 export function validatePolicy(policy) {
   const errors = [];
+  requirePlainObject(policy, 'policy.json', errors);
+  if (errors.length > 0) {
+    throwIfInvalid('policy.json', errors);
+  }
   optionalStringArray(policy, 'requiredEnvKeys', errors);
   optionalStringArray(policy, 'forbiddenPublicEnvKeys', errors);
   optionalStringArray(policy, 'requiredDomains', errors);
@@ -38,6 +46,10 @@ export function validatePolicy(policy) {
 
 export function validateTemplate(template) {
   const errors = [];
+  requirePlainObject(template, 'template.json', errors);
+  if (errors.length > 0) {
+    throwIfInvalid('template.json', errors);
+  }
 
   if (template.kind !== 'vercel-project-template') {
     errors.push('kind must be vercel-project-template');
@@ -69,6 +81,12 @@ export function validateTemplate(template) {
   optionalStringArray(template, 'manualReview', errors);
 
   throwIfInvalid('template.json', errors);
+}
+
+function requirePlainObject(value, name, errors) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    errors.push(`${name} must be an object`);
+  }
 }
 
 function optionalString(object, field, errors) {

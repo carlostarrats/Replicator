@@ -6,18 +6,18 @@ export function renderAnalysisReport({ project, envs, domains = [], codeEnvRefs 
     '',
     '## Project',
     '',
-    `- Project: ${project.name || project.id || 'unknown'}`,
-    `- Framework: ${project.framework || 'not set'}`,
-    `- Repository: ${formatRepository(project.gitRepository)}`,
-    `- Root directory: ${project.rootDirectory || 'not set'}`,
-    `- Install command: ${project.installCommand || 'not set'}`,
-    `- Build command: ${project.buildCommand || 'not set'}`,
-    `- Output directory: ${project.outputDirectory || 'not set'}`,
+    `- Project: ${formatMarkdownValue(project.name || project.id || 'unknown')}`,
+    `- Framework: ${formatMarkdownValue(project.framework || 'not set')}`,
+    `- Repository: ${formatMarkdownValue(formatRepository(project.gitRepository))}`,
+    `- Root directory: ${formatMarkdownValue(project.rootDirectory || 'not set')}`,
+    `- Install command: ${formatMarkdownValue(project.installCommand || 'not set')}`,
+    `- Build command: ${formatMarkdownValue(project.buildCommand || 'not set')}`,
+    `- Output directory: ${formatMarkdownValue(project.outputDirectory || 'not set')}`,
     '',
     '## Project Settings',
     '',
-    `- Node version: ${project.nodeVersion || 'not set'}`,
-    `- Serverless function region: ${project.serverlessFunctionRegion || 'not set'}`,
+    `- Node version: ${formatMarkdownValue(project.nodeVersion || 'not set')}`,
+    `- Serverless function region: ${formatMarkdownValue(project.serverlessFunctionRegion || 'not set')}`,
     `- Git fork protection: ${formatEnabled(project.gitForkProtection)}`,
     `- SSO protection: ${formatProtection(project.ssoProtection)}`,
     `- Auto-expose system envs: ${formatEnabled(project.autoExposeSystemEnvs)}`,
@@ -31,7 +31,7 @@ export function renderAnalysisReport({ project, envs, domains = [], codeEnvRefs 
     lines.push('- None detected');
   } else {
     for (const env of sortEnv(envs)) {
-      lines.push(`- ${env.key} - ${formatTargets(env.target)} (${env.type || 'unknown'})`);
+      lines.push(`- ${formatMarkdownValue(env.key)} - ${formatMarkdownValue(formatTargets(env.target))} (${formatMarkdownValue(env.type || 'unknown')})`);
     }
   }
 
@@ -40,7 +40,7 @@ export function renderAnalysisReport({ project, envs, domains = [], codeEnvRefs 
     lines.push('- None detected');
   } else {
     for (const service of likelyServices) {
-      lines.push(`- ${service}`);
+      lines.push(`- ${formatMarkdownValue(service)}`);
     }
   }
 
@@ -49,7 +49,7 @@ export function renderAnalysisReport({ project, envs, domains = [], codeEnvRefs 
     lines.push('- None detected');
   } else {
     for (const domain of sortDomains(domains)) {
-      lines.push(`- ${domain.name} - ${domain.verified ? 'verified' : 'not verified'}`);
+      lines.push(`- ${formatMarkdownValue(domain.name)} - ${domain.verified ? 'verified' : 'not verified'}`);
     }
   }
 
@@ -59,7 +59,7 @@ export function renderAnalysisReport({ project, envs, domains = [], codeEnvRefs 
     lines.push('- None detected');
   } else {
     for (const ref of missingCodeRefs) {
-      lines.push(`- ${ref.key} - ${ref.files.join(', ')}`);
+      lines.push(`- ${formatMarkdownValue(ref.key)} - ${formatMarkdownValue(ref.files.join(', '))}`);
     }
   }
 
@@ -132,16 +132,20 @@ function missingCodeEnvRefs(envs, codeEnvRefs) {
 function formatVercelConfig(config) {
   const lines = [];
   for (const cron of config.crons || []) {
-    lines.push(`- Cron: ${cron.path} - ${cron.schedule}`);
+    lines.push(`- Cron: ${formatMarkdownValue(cron.path)} - ${formatMarkdownValue(cron.schedule)}`);
   }
   for (const rewrite of config.rewrites || []) {
-    lines.push(`- Rewrite: ${rewrite.source} -> ${rewrite.destination}`);
+    lines.push(`- Rewrite: ${formatMarkdownValue(rewrite.source)} -> ${formatMarkdownValue(rewrite.destination)}`);
   }
   for (const redirect of config.redirects || []) {
-    lines.push(`- Redirect: ${redirect.source} -> ${redirect.destination}`);
+    lines.push(`- Redirect: ${formatMarkdownValue(redirect.source)} -> ${formatMarkdownValue(redirect.destination)}`);
   }
   for (const header of config.headers || []) {
-    lines.push(`- Header rule: ${header.source}`);
+    lines.push(`- Header rule: ${formatMarkdownValue(header.source)}`);
   }
   return lines;
+}
+
+function formatMarkdownValue(value) {
+  return String(value).replace(/[&<>]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
 }

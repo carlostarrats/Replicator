@@ -31,3 +31,28 @@ test('viewer writes a local static report viewer without Vercel auth', async () 
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('viewer sanitizes dynamic status and metric values before rendering', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vcopy-viewer-sanitize-'));
+  const out = join(dir, 'viewer.html');
+
+  try {
+    const result = await runCli([
+      'viewer',
+      '--out',
+      out,
+    ], {
+      VERCEL_TOKEN: '',
+    });
+
+    assert.equal(result.code, 0, result.stderr);
+    const html = await readFile(out, 'utf8');
+    assert.match(html, /safeStatusClass\(data\.status\)/);
+    assert.match(html, /escapeHtml\(data\.readiness\.score\)/);
+    assert.match(html, /escapeHtml\(data\.score\)/);
+    assert.match(html, /escapeHtml\(data\.projectCount\)/);
+    assert.doesNotMatch(html, /status-' \+ data\.status/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
