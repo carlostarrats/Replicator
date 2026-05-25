@@ -24,7 +24,7 @@
 - Suggest shared env/refactor candidates.
 - Generate combined migration handoff reports.
 - Run a CI gate that fails on target readiness blockers or source/target drift.
-- Run scheduled overview audits through GitHub Actions.
+- Run manual, allowlisted overview audits through GitHub Actions.
 - Export reusable project config templates without secret values.
 - Preview local template application plans without Vercel auth or mutations.
 - Comment config CI reports on pull requests through GitHub Actions.

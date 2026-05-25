@@ -182,6 +182,8 @@ Example:
 node src/cli.mjs overview --projects brand-a-web,brand-b-web
 ```
 
+Automation should pass `--projects` with an explicit allowlist. The GitHub Actions audit workflow is manual-only and refuses to run unless `VCOPY_ENABLE_CLOUD_AUDIT=true` and `VCOPY_AUDIT_PROJECTS` are set.
+
 Writes: stdout or report file only.
 
 ## vcopy policy-check

@@ -44,6 +44,17 @@ Domain moves, selected secret migration, deployment protection sync, and routing
 
 `routing-sync` is local-file based and intended for test fixture config files.
 
+## GitHub Actions Cloud Audits
+
+The Vercel config audit workflow is manual-only. It does not use a scheduled trigger.
+
+Manual cloud audits fail closed unless both repository variables are set:
+
+- `VCOPY_ENABLE_CLOUD_AUDIT=true`
+- `VCOPY_AUDIT_PROJECTS` with a comma-separated allowlist of project names
+
+The workflow runs the read-only `overview` command with `--projects`; it must not fall back to scanning every accessible Vercel project.
+
 ## Authentication
 
 The CLI uses `VERCEL_TOKEN` or `--token` when provided. If neither is set, it attempts to use the local Vercel CLI auth file created by `vercel login`.

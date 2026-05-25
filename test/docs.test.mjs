@@ -38,6 +38,22 @@ test('real project policy says real writes are disabled', async () => {
   assert.match(docs, /dry-run artifact/);
 });
 
+test('cloud workflows are manual, allowlisted, and non-mutating', async () => {
+  const auditWorkflow = await readFile('.github/workflows/vercel-config-audit.yml', 'utf8');
+  const prWorkflow = await readFile('.github/workflows/vercel-config-pr.yml', 'utf8');
+  const workflowText = `${auditWorkflow}\n${prWorkflow}`;
+  const mvp = await readFile('docs/MVP.md', 'utf8');
+
+  assert.doesNotMatch(workflowText, /^\s+schedule:/m);
+  assert.doesNotMatch(workflowText, /\b--apply\b/);
+  assert.doesNotMatch(workflowText, /\b--yes\b/);
+  assert.doesNotMatch(workflowText, /\b(domain-move|env-push|env-rm|protection-sync|routing-sync|secrets-migrate|template-apply)\b/);
+  assert.match(auditWorkflow, /VCOPY_ENABLE_CLOUD_AUDIT must be true/);
+  assert.match(auditWorkflow, /VCOPY_AUDIT_PROJECTS is required/);
+  assert.doesNotMatch(auditWorkflow, /node src\/cli\.mjs overview --fail-on-drift/);
+  assert.doesNotMatch(mvp, /scheduled overview audits/i);
+});
+
 test('local code review records follow-up hardening areas', async () => {
   const docs = await readFile('docs/CODE_REVIEW.md', 'utf8');
 

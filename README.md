@@ -70,6 +70,7 @@ The project is intentionally conservative:
 - Domain and project mutation commands require explicit apply flags.
 - Guarded write commands require `--test-project-only --apply --yes`.
 - Guarded project writes refuse targets that do not start with `vcopy-test-` unless the local config changes the test prefix.
+- GitHub Actions cloud audits are manual-only and require both `VCOPY_ENABLE_CLOUD_AUDIT=true` and an explicit `VCOPY_AUDIT_PROJECTS` allowlist.
 - Real project mutation is disabled by default; see `docs/REAL_PROJECT_POLICY.md`.
 
 Automated tests and the local dogfood workflow use local files and a local Vercel API test server so development can verify behavior without touching real projects, domains, or secrets.

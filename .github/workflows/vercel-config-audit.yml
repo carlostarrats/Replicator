@@ -2,8 +2,6 @@ name: Vercel Config Audit
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 14 * * 1"
 
 jobs:
   audit:
@@ -11,6 +9,7 @@ jobs:
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+      VCOPY_ENABLE_CLOUD_AUDIT: ${{ vars.VCOPY_ENABLE_CLOUD_AUDIT }}
       VCOPY_AUDIT_PROJECTS: ${{ vars.VCOPY_AUDIT_PROJECTS }}
     steps:
       - uses: actions/checkout@v4
@@ -21,11 +20,15 @@ jobs:
 
       - name: Run Vercel config overview
         run: |
-          if [ -n "$VCOPY_AUDIT_PROJECTS" ]; then
-            node src/cli.mjs overview --projects "$VCOPY_AUDIT_PROJECTS" --fail-on-drift --out vercel-config-overview.md
-          else
-            node src/cli.mjs overview --fail-on-drift --out vercel-config-overview.md
+          if [ "$VCOPY_ENABLE_CLOUD_AUDIT" != "true" ]; then
+            echo "VCOPY_ENABLE_CLOUD_AUDIT must be true for manual cloud audits."
+            exit 1
           fi
+          if [ -z "$VCOPY_AUDIT_PROJECTS" ]; then
+            echo "VCOPY_AUDIT_PROJECTS is required for manual cloud audits."
+            exit 1
+          fi
+          node src/cli.mjs overview --projects "$VCOPY_AUDIT_PROJECTS" --fail-on-drift --out vercel-config-overview.md
 
       - uses: actions/upload-artifact@v4
         if: always()
